@@ -12,7 +12,7 @@ To build and deliver a working, beautiful, end-to-end prototype within a **24-ho
 │                 │ Interactive Competency Radar Dashboard, Learning Path     │
 ├─────────────────┼───────────────────────────────────────────────────────────┤
 │ Developer 2     │ Backend Core Lead: FastAPI setup, Routing, API Schemas,   │
-│                 │ Assessment & Reassessment API Endpoints, Dependencies      │
+│                 │ Assessment & Reassessment API Endpoints, Dependencies     │  
 ├─────────────────┼───────────────────────────────────────────────────────────┤
 │ Developer 3     │ Intelligence Engine Lead: Deterministic Competency Math,  │
 │                 │ Evidence Ledger Aggregation, Recommendation DAG Sorting   │
