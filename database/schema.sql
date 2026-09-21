@@ -1,9 +1,9 @@
 -- ============================================================================
 -- SkillCompass — Database Schema (PostgreSQL / Supabase)
--- Phase: Database Foundation
+-- Target Roles: Data Engineer, Cybersecurity Analyst / Engineer, Network Engineer
 -- ============================================================================
 
--- Enable pgcrypto or uuid-ossp for UUID generation if not already active
+-- Enable pgcrypto for UUID generation if not already active
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ============================================================================
@@ -39,15 +39,17 @@ CREATE TABLE IF NOT EXISTS competencies (
 );
 
 -- ============================================================================
--- 4. ROLE_COMPETENCIES TABLE (Benchmark requirements per role)
+-- 4. ROLE_COMPETENCIES TABLE (Benchmark requirements and source rank)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS role_competencies (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
     competency_id UUID NOT NULL REFERENCES competencies(id) ON DELETE CASCADE,
+    rank INTEGER NOT NULL CHECK (rank >= 1),
     required_level NUMERIC(5,2) NOT NULL CHECK (required_level >= 0 AND required_level <= 100),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT uq_role_competency UNIQUE (role_id, competency_id)
+    CONSTRAINT uq_role_competency UNIQUE (role_id, competency_id),
+    CONSTRAINT uq_role_rank UNIQUE (role_id, rank)
 );
 
 -- ============================================================================
@@ -102,6 +104,7 @@ CREATE TABLE IF NOT EXISTS evidence_logs (
 CREATE INDEX IF NOT EXISTS idx_users_role_id ON users(role_id);
 CREATE INDEX IF NOT EXISTS idx_role_competencies_role_id ON role_competencies(role_id);
 CREATE INDEX IF NOT EXISTS idx_role_competencies_competency_id ON role_competencies(competency_id);
+CREATE INDEX IF NOT EXISTS idx_role_competencies_role_rank ON role_competencies(role_id, rank);
 CREATE INDEX IF NOT EXISTS idx_competency_resources_competency_id ON competency_resources(competency_id);
 CREATE INDEX IF NOT EXISTS idx_competency_resources_resource_id ON competency_resources(resource_id);
 CREATE INDEX IF NOT EXISTS idx_evidence_logs_user_id ON evidence_logs(user_id);

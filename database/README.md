@@ -2,7 +2,7 @@
 
 ## 1. Database Purpose & Architectural Role
 
-The SkillCompass database layer serves as the rock-solid relational foundation for the platform. It enforces relational integrity, stores role benchmarks, indexes curated learning resources, and maintains an append-only ledger of observable performance evidence (`evidence_logs`).
+The SkillCompass database layer serves as the relational foundation for the platform. It enforces relational integrity, stores role benchmarks, tracks source-derived rankings, indexes curated learning resources, and maintains an append-only ledger of observable performance evidence (`evidence_logs`).
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -21,12 +21,12 @@ The database never stores arbitrary black-box AI scores as competency truth. Ins
 
 The database comprises **7 core tables**:
 
-| Table | Purpose | Primary Key | Foreign Keys / Constraints |
+| Table | Purpose | Primary Key | Key Fields & Constraints |
 | :--- | :--- | :--- | :--- |
-| **`roles`** | Target industry roles (e.g. Statistical Officer, Data Analyst). | `id (UUID)` | `name UNIQUE` |
+| **`roles`** | Target industry roles (Data Engineer, Cybersecurity Analyst / Engineer, Network Engineer). | `id (UUID)` | `name UNIQUE` |
 | **`users`** | Registered learners and their active target role. | `id (UUID)` | `role_id -> roles(id)`, `email UNIQUE` |
-| **`competencies`** | Atomic skill taxonomy (8 core skills). | `id (UUID)` | `name UNIQUE` |
-| **`role_competencies`**| Required competency levels (0–100) per role. | `id (UUID)` | `role_id -> roles`, `competency_id -> competencies`, `UNIQUE(role_id, competency_id)` |
+| **`competencies`** | Reusable competency taxonomy (17 core skills). | `id (UUID)` | `name UNIQUE`, `category` |
+| **`role_competencies`**| Associates roles with competencies, preserving source rank and prototype required levels. | `id (UUID)` | `rank (source priority)`, `required_level (0–100)`, `UNIQUE(role_id, competency_id)`, `UNIQUE(role_id, rank)` |
 | **`learning_resources`**| Curated learning modules with authoritative URLs. | `id (UUID)` | `difficulty`, `resource_type`, `estimated_minutes > 0` |
 | **`competency_resources`**| Many-to-many relationship with priority order. | `id (UUID)` | `competency_id -> competencies`, `resource_id -> learning_resources`, `UNIQUE(competency_id, resource_id)` |
 | **`evidence_logs`** | Observable performance records used for scoring. | `id (UUID)` | `user_id -> users`, `competency_id -> competencies`, `score BETWEEN 0 AND 100`, `weight > 0` |
@@ -36,62 +36,121 @@ The database comprises **7 core tables**:
 ## 3. Entity Relationships
 
 ```
-roles
-  ├───► users
-  └───► role_competencies ◄─── competencies
-                                  ├───► competency_resources ◄─── learning_resources
-                                  └───► evidence_logs ◄─── users
+                    ┌──────────────┐
+                    │    USERS     │
+                    └──────┬───────┘
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │    ROLES     │
+                    └──────┬───────┘
+                           │
+                           ▼
+                ┌────────────────────┐
+                │ ROLE_COMPETENCIES  │
+                └─────────┬──────────┘
+                          │
+                          ▼
+                  ┌──────────────┐
+                  │ COMPETENCIES │
+                  └──────┬───────┘
+                         │
+              ┌──────────┴──────────┐
+              ▼                     ▼
+      ┌─────────────────┐   ┌────────────────┐
+      │ EVIDENCE_LOGS   │   │ LEARNING       │
+      │                 │   │ RESOURCES      │
+      └─────────────────┘   └───────┬────────┘
+                                    │
+                                    ▼
+                          COMPETENCY_RESOURCES
 ```
-
-1. **`roles` $\rightarrow$ `users`:** Each learner is optionally enrolled in a target role (`ON DELETE SET NULL`).
-2. **`roles` $\rightarrow$ `role_competencies` $\leftarrow$ `competencies`:** Defines benchmark requirements for a role. A unique composite constraint prevents duplicate mappings.
-3. **`competencies` $\rightarrow$ `competency_resources` $\leftarrow$ `learning_resources`:** Maps learning materials to competencies with a `priority` integer for the recommendation engine.
-4. **`users` $\rightarrow$ `evidence_logs` $\leftarrow$ `competencies`:** Tracks discrete test scores, assessments, and activities with weights and metadata.
 
 ---
 
-## 4. How to Run in Supabase
+## 4. Source-Based Rank vs. Prototype Required Level
 
-### Option A: Supabase Web Dashboard (Recommended for Hackathon)
-1. Log in to your [Supabase Dashboard](https://supabase.com/dashboard) and navigate to your project.
-2. Click on the **SQL Editor** in the left navigation sidebar.
-3. Click **New query**.
-4. Copy the entire contents of [`database/schema.sql`](file:///e:/PROJECT/Skill_Compass/database/schema.sql) and paste into the editor.
-5. Click **Run** (green button). Verify "Success. No rows returned."
-6. Open another new query tab, copy the contents of [`database/seed.sql`](file:///e:/PROJECT/Skill_Compass/database/seed.sql), and paste it in.
-7. Click **Run**. Verify data insertion.
+It is critical to distinguish between these two attributes in `role_competencies`:
+
+| Attribute | Meaning | Source | Scale | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| **`rank`** | Relative priority / sequence of competencies within the role. | **Reference Material** (Explicitly specified in project requirements) | Integer ($1, 2, 3...$) | Preserves the exact authoritative ordering from the curriculum reference. |
+| **`required_level`** | Target competency benchmark used by the scoring engine. | **SkillCompass Prototype** (Configurable baseline) | Numeric ($0.00 - 100.00$) | Allows the Competency Engine to compute $\text{SkillGap} = \max(0, \text{required\_level} - \text{current\_score})$. |
+
+> **Important Note:** The source material defines rankings and domain scope; it does not provide official government/industry percentage standards. Prototype required levels are provided for demonstration and are fully customizable.
+
+---
+
+## 5. Roles & Competency Taxonomy (17 Unique Competencies)
+
+### Role 1: Data Engineer (6 Competencies)
+| Rank | Competency | Category | Prototype Target | Description / Focus |
+| :---: | :--- | :--- | :---: | :--- |
+| 1 | **SQL & Data Modeling** | Data Architecture | 85.00 | Relational schemas, normalization, analytical SQL, window functions, CTEs. |
+| 2 | **Python / Scala** | Programming | 80.00 | Data manipulation libraries such as Pandas and PySpark, OOP, scripting. |
+| 3 | **Distributed Computing & Big Data** | Big Data | 75.00 | Apache Spark, Hadoop ecosystem, MapReduce concepts. |
+| 4 | **Data Pipelining & Orchestration** | Data Engineering | 80.00 | Apache Airflow, Prefect, ETL/ELT design, DAG management. |
+| 5 | **Data Warehousing & Cloud** | Cloud & Infrastructure | 75.00 | Snowflake, BigQuery, AWS Redshift, data lakehouse architectures. |
+| 6 | **Streaming Data Processing** | Stream Processing | 70.00 | Apache Kafka, Flink, real-time ingestion pipelines. |
+
+### Role 2: Cybersecurity Analyst / Engineer (5 Competencies)
+*Note: The reference material provided exactly 5 visible competencies. In accordance with strict guidelines, no 6th competency has been invented.*
+| Rank | Competency | Category | Prototype Target | Description / Focus |
+| :---: | :--- | :--- | :---: | :--- |
+| 1 | **Network & OS Fundamentals** | Systems & Networks | 85.00 | TCP/IP, OSI model, Linux/Windows administration, security protocols. |
+| 2 | **Threat Detection & SIEM** | Security Operations | 80.00 | Log analysis, Splunk, Elastic Security, SOC monitoring. |
+| 3 | **Vulnerability Assessment & Pen Testing** | Offensive Security | 75.00 | Nmap, Wireshark, Burp Suite, OWASP Top 10, penetration testing. |
+| 4 | **Identity & Access Management (IAM)** | Access Control | 75.00 | Zero Trust architecture, RBAC, Active Directory, OAuth/SAML. |
+| 5 | **Incident Response & Digital Forensics** | Incident Response | 70.00 | Malware analysis, containment strategies, memory analysis. |
+
+### Role 3: Network Engineer (6 Competencies)
+| Rank | Competency | Category | Prototype Target | Description / Focus |
+| :---: | :--- | :--- | :---: | :--- |
+| 1 | **Routing & Switching Fundamentals** | Networking | 85.00 | VLANs, STP, subnetting, IPv4/IPv6, OSPF, BGP routing protocols. |
+| 2 | **Network Infrastructure & Hardware** | Hardware & Infrastructure | 80.00 | Routers, switches, firewalls. |
+| 3 | **Network Automation & Scripting** | Automation | 70.00 | Python, Netmiko, NAPALM, Ansible, REST APIs for network devices. |
+| 4 | **Network Security & Firewalls** | Network Security | 80.00 | VPNs (IPsec/SSL), ACLs, IDS/IPS. |
+| 5 | **Cloud Networking & SD-WAN** | Cloud Networking | 75.00 | AWS VPC, Azure Virtual Networks, Software-Defined WAN (SD-WAN). |
+| 6 | **Network Monitoring & Troubleshooting** | Monitoring | 75.00 | Wireshark, SNMP, Nagios, packet capturing, latency optimization. |
+
+---
+
+## 6. How to Run in Supabase
+
+### Option A: Supabase SQL Editor (Recommended)
+1. Navigate to your Supabase project dashboard at `https://supabase.com/dashboard`.
+2. Click on **SQL Editor** in the left sidebar.
+3. Open a **New query**, paste the entire contents of [`database/schema.sql`](file:///e:/PROJECT/Skill_Compass/database/schema.sql), and click **Run**.
+4. Open another new query tab, paste the contents of [`database/seed.sql`](file:///e:/PROJECT/Skill_Compass/database/seed.sql), and click **Run**.
+5. Verify "Success. No rows returned."
 
 ### Option B: Local PostgreSQL or psql CLI
-If connecting directly via `psql` or a local PostgreSQL instance:
 ```bash
 # 1. Execute schema DDL
 psql -h localhost -U postgres -d skillcompass -f database/schema.sql
 
-# 2. Populate prototype seed data
+# 2. Populate seed data
 psql -h localhost -U postgres -d skillcompass -f database/seed.sql
 ```
 
 ---
 
-## 5. Required Environment Variables for Backend
+## 7. Required Environment Variables for Backend
 
-The FastAPI backend connects to PostgreSQL using asyncpg/SQLAlchemy. Add the following to `backend/.env`:
+The FastAPI backend connects to PostgreSQL using asyncpg/SQLAlchemy. Add the connection URI to `backend/.env`:
 
 ```ini
 # Supabase Transaction Pooler (Port 6543) or Direct Connection (Port 5432)
-DATABASE_URL="postgresql+asyncpg://postgres.[YOUR-PROJECT-REF]:[YOUR-PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres"
-
-# Alternative for local PostgreSQL:
-# DATABASE_URL="postgresql+asyncpg://postgres:postgres@localhost:5432/skillcompass"
+DATABASE_URL="postgresql+asyncpg://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres"
 ```
 
 ---
 
-## 6. Verification & Validation Queries
+## 8. Verification & Validation SQL Queries
 
-After running `schema.sql` and `seed.sql`, run the following SQL queries in the Supabase SQL Editor to verify complete database integrity:
+Run these verification queries in Supabase to confirm the updated dataset:
 
-### 1. Verify Role and Competency Counts (Expected: 2 roles, 8 competencies)
+### 1. Verify Entity Counts
 ```sql
 SELECT 
     (SELECT COUNT(*) FROM roles) AS total_roles,
@@ -101,57 +160,50 @@ SELECT
     (SELECT COUNT(*) FROM competency_resources) AS total_mappings;
 ```
 *Expected Result:*
-- `total_roles`: 2
-- `total_competencies`: 8
-- `total_requirements`: 16
+- `total_roles`: 3
+- `total_competencies`: 17
+- `total_requirements`: 17
 - `total_resources`: 15
-- `total_mappings`: 16
+- `total_mappings`: 17
 
-### 2. Verify Role Competency Benchmarks (Both roles have exactly 8 competencies)
+### 2. Verify Competency Counts & Rank Ordering Per Role
 ```sql
 SELECT 
     r.name AS role_name,
-    COUNT(rc.competency_id) AS mapped_competencies,
-    ROUND(AVG(rc.required_level), 1) AS avg_required_level
+    COUNT(rc.competency_id) AS competencies_count,
+    MIN(rc.rank) AS min_rank,
+    MAX(rc.rank) AS max_rank
 FROM roles r
 JOIN role_competencies rc ON r.id = rc.role_id
-GROUP BY r.name;
+GROUP BY r.name
+ORDER BY r.name;
+```
+*Expected Result:*
+- `Cybersecurity Analyst / Engineer`: 5 competencies (rank 1 to 5)
+- `Data Engineer`: 6 competencies (rank 1 to 6)
+- `Network Engineer`: 6 competencies (rank 1 to 6)
+
+### 3. Verify Detailed Role-Competency Ranks and Targets
+```sql
+SELECT 
+    r.name AS role_name,
+    rc.rank,
+    c.name AS competency_name,
+    rc.required_level AS prototype_target
+FROM roles r
+JOIN role_competencies rc ON r.id = rc.role_id
+JOIN competencies c ON rc.competency_id = c.id
+ORDER BY r.name, rc.rank;
 ```
 
-### 3. Verify Every Competency Has at least One Recommended Resource
+### 4. Verify All Competencies Have Mapped Resources
 ```sql
 SELECT 
     c.name AS competency_name,
-    COUNT(cr.resource_id) AS resource_count,
-    MIN(cr.priority) AS top_priority
+    COUNT(cr.resource_id) AS mapped_resources
 FROM competencies c
 LEFT JOIN competency_resources cr ON c.id = cr.competency_id
 GROUP BY c.name
-ORDER BY resource_count ASC;
+ORDER BY mapped_resources ASC, c.name;
 ```
-*Expected Result:* `resource_count` $\ge 2$ for all 8 competencies.
-
-### 4. Verify Integrity Constraints Reject Invalid Data
-```sql
--- Test 1: Should fail CHECK (required_level >= 0 AND required_level <= 100)
--- INSERT INTO role_competencies (role_id, competency_id, required_level) 
--- VALUES ('11111111-1111-1111-1111-111111111101', '22222222-2222-2222-2222-222222222201', 150.00);
-
--- Test 2: Should fail UNIQUE constraint on duplicate role-competency pair
--- INSERT INTO role_competencies (role_id, competency_id, required_level) 
--- VALUES ('11111111-1111-1111-1111-111111111101', '22222222-2222-2222-2222-222222222201', 75.00);
-```
-
-### 5. Inspect Seeded Evidence Log for Demo User
-```sql
-SELECT 
-    u.name AS user_name,
-    c.name AS competency,
-    el.evidence_type,
-    el.score,
-    el.weight,
-    el.metadata
-FROM evidence_logs el
-JOIN users u ON el.user_id = u.id
-JOIN competencies c ON el.competency_id = c.id;
-```
+*Expected Result:* Every competency has `mapped_resources >= 1`.

@@ -1,309 +1,366 @@
 -- ============================================================================
 -- SkillCompass — Database Seed Data (PostgreSQL / Supabase)
--- Phase: Database Foundation
+-- Target Roles: Data Engineer, Cybersecurity Analyst / Engineer, Network Engineer
 -- ============================================================================
 
--- Clear existing prototype data to ensure idempotent seeding (ordered by foreign key constraints)
+-- Clear existing prototype data to ensure idempotent seeding (ordered by foreign keys)
 TRUNCATE TABLE evidence_logs, competency_resources, learning_resources, role_competencies, users, competencies, roles CASCADE;
 
 -- ============================================================================
--- 1. SEED ROLES
+-- 1. SEED ROLES (3 Target Industry Roles)
 -- ============================================================================
 INSERT INTO roles (id, name, description) VALUES
 (
     '11111111-1111-1111-1111-111111111101',
-    'Statistical Officer',
-    'Specializes in statistical inference, survey sampling design, quantitative research, and mathematical validation of datasets.'
+    'Data Engineer',
+    'Designs, builds, and operationalizes scalable data pipelines, distributed storage, and analytics warehouses.'
 ),
 (
     '11111111-1111-1111-1111-111111111102',
-    'Data Analyst',
-    'Focuses on data extraction, transformation, exploratory data analysis, business intelligence, and insightful visual reporting.'
+    'Cybersecurity Analyst / Engineer',
+    'Protects digital infrastructure through threat detection, vulnerability analysis, identity management, and incident response.'
+),
+(
+    '11111111-1111-1111-1111-111111111103',
+    'Network Engineer',
+    'Plans, configures, automates, and maintains high-availability routing, switching, cloud connectivity, and network security.'
 );
 
 -- ============================================================================
--- 2. SEED COMPETENCIES (8 Core Prototype Competencies)
+-- 2. SEED COMPETENCIES (17 Discrete Core Competencies)
 -- ============================================================================
+
+-- Competencies for Data Engineer (6)
 INSERT INTO competencies (id, name, description, category) VALUES
 (
-    '22222222-2222-2222-2222-222222222201',
-    'Python',
-    'Foundational programming in Python including data structures, scripting, and modular code development.',
+    '22222222-2222-2222-2222-222222222101',
+    'SQL & Data Modeling',
+    'Relational schemas, normalization, analytical SQL, window functions, and Common Table Expressions (CTEs).',
+    'Data Architecture'
+),
+(
+    '22222222-2222-2222-2222-222222222102',
+    'Python / Scala',
+    'Data manipulation libraries such as Pandas and PySpark, object-oriented programming, and production scripting.',
     'Programming'
 ),
 (
+    '22222222-2222-2222-2222-222222222103',
+    'Distributed Computing & Big Data',
+    'Apache Spark, Hadoop ecosystem, distributed memory execution, and MapReduce processing concepts.',
+    'Big Data'
+),
+(
+    '22222222-2222-2222-2222-222222222104',
+    'Data Pipelining & Orchestration',
+    'Workflow scheduling using Apache Airflow, Prefect, robust ETL/ELT pipeline design, and DAG management.',
+    'Data Engineering'
+),
+(
+    '22222222-2222-2222-2222-222222222105',
+    'Data Warehousing & Cloud',
+    'Cloud analytical warehouses (Snowflake, BigQuery, AWS Redshift) and modern data lakehouse architectures.',
+    'Cloud & Infrastructure'
+),
+(
+    '22222222-2222-2222-2222-222222222106',
+    'Streaming Data Processing',
+    'Real-time streaming ingestion pipelines, event brokers, Apache Kafka, and Apache Flink.',
+    'Stream Processing'
+);
+
+-- Competencies for Cybersecurity Analyst / Engineer (5 sourced from reference material)
+INSERT INTO competencies (id, name, description, category) VALUES
+(
+    '22222222-2222-2222-2222-222222222201',
+    'Network & OS Fundamentals',
+    'TCP/IP stack, OSI model, Linux and Windows system administration, core ports, and security protocols.',
+    'Systems & Networks'
+),
+(
     '22222222-2222-2222-2222-222222222202',
-    'SQL',
-    'Relational database querying, multi-table joins, aggregations, window functions, and schema navigation.',
-    'Database'
+    'Threat Detection & SIEM',
+    'Security Information and Event Management (SIEM), centralized log analysis, Splunk, Elastic Security, and SOC monitoring.',
+    'Security Operations'
 ),
 (
     '22222222-2222-2222-2222-222222222203',
-    'Sampling',
-    'Design and execution of probability sampling methods, stratified sampling, sample size determination, and bias control.',
-    'Methodology'
+    'Vulnerability Assessment & Pen Testing',
+    'Network scanning with Nmap, packet analysis via Wireshark, web security with Burp Suite, OWASP Top 10, and penetration testing.',
+    'Offensive Security'
 ),
 (
     '22222222-2222-2222-2222-222222222204',
-    'Data Visualization',
-    'Communicating quantitative insights through plots, dashboards, chart ergonomics, and visual storytelling.',
-    'Communication'
+    'Identity & Access Management (IAM)',
+    'Zero Trust security architecture, Role-Based Access Control (RBAC), Active Directory, OAuth 2.0, and SAML authentication.',
+    'Access Control'
 ),
 (
     '22222222-2222-2222-2222-222222222205',
-    'Statistics',
-    'Descriptive statistics, probability distributions, hypothesis testing, confidence intervals, and p-value interpretation.',
-    'Mathematics'
+    'Incident Response & Digital Forensics',
+    'Incident triage, malware analysis, containment strategies, forensic chain of custody, and memory inspection.',
+    'Incident Response'
+);
+
+-- Competencies for Network Engineer (6)
+INSERT INTO competencies (id, name, description, category) VALUES
+(
+    '22222222-2222-2222-2222-222222222301',
+    'Routing & Switching Fundamentals',
+    'VLAN configuration, Spanning Tree Protocol (STP), IP subnetting, IPv4/IPv6 dual stack, OSPF, and BGP routing protocols.',
+    'Networking'
 ),
 (
-    '22222222-2222-2222-2222-222222222206',
-    'Data Cleaning',
-    'Detecting missing values, handling duplicates, normalizing data types, imputation techniques, and anomaly removal.',
-    'Engineering'
+    '22222222-2222-2222-2222-222222222302',
+    'Network Infrastructure & Hardware',
+    'Physical and virtual enterprise network hardware: chassis routers, multilayer switches, and perimeter firewalls.',
+    'Hardware & Infrastructure'
 ),
 (
-    '22222222-2222-2222-2222-222222222207',
-    'Data Analysis',
-    'Exploratory data analysis, correlation testing, pattern recognition, and quantitative insight generation.',
-    'Analytics'
+    '22222222-2222-2222-2222-222222222303',
+    'Network Automation & Scripting',
+    'Automating network provisioning and telemetry using Python, Netmiko, NAPALM, Ansible, and device REST APIs.',
+    'Automation'
 ),
 (
-    '22222222-2222-2222-2222-222222222208',
-    'Problem Solving',
-    'Structured root-cause analysis, decomposing ambiguous challenges, and designing algorithmic solutions.',
-    'Cognitive'
+    '22222222-2222-2222-2222-222222222304',
+    'Network Security & Firewalls',
+    'Virtual Private Networks (IPsec and SSL VPNs), Access Control Lists (ACLs), stateful inspection, and IDS/IPS tuning.',
+    'Network Security'
+),
+(
+    '22222222-2222-2222-2222-222222222305',
+    'Cloud Networking & SD-WAN',
+    'Cloud VPC architectures (AWS VPC, Azure Virtual Networks), transit gateways, and Software-Defined WAN (SD-WAN).',
+    'Cloud Networking'
+),
+(
+    '22222222-2222-2222-2222-222222222306',
+    'Network Monitoring & Troubleshooting',
+    'Deep packet analysis with Wireshark, SNMP telemetry, Nagios, latency optimization, and jitter diagnosis.',
+    'Monitoring'
 );
 
 -- ============================================================================
--- 3. SEED ROLE_COMPETENCIES (Benchmark Requirements: 0–100 Scale)
+-- 3. SEED ROLE_COMPETENCIES (Rank from reference material + Prototype required_level)
 -- ============================================================================
 
--- Role 1: Statistical Officer
-INSERT INTO role_competencies (role_id, competency_id, required_level) VALUES
-('11111111-1111-1111-1111-111111111101', '22222222-2222-2222-2222-222222222201', 75.00), -- Python: 75
-('11111111-1111-1111-1111-111111111101', '22222222-2222-2222-2222-222222222202', 65.00), -- SQL: 65
-('11111111-1111-1111-1111-111111111101', '22222222-2222-2222-2222-222222222203', 80.00), -- Sampling: 80
-('11111111-1111-1111-1111-111111111101', '22222222-2222-2222-2222-222222222204', 70.00), -- Data Visualization: 70
-('11111111-1111-1111-1111-111111111101', '22222222-2222-2222-2222-222222222205', 85.00), -- Statistics: 85
-('11111111-1111-1111-1111-111111111101', '22222222-2222-2222-2222-222222222206', 65.00), -- Data Cleaning: 65
-('11111111-1111-1111-1111-111111111101', '22222222-2222-2222-2222-222222222207', 75.00), -- Data Analysis: 75
-('11111111-1111-1111-1111-111111111101', '22222222-2222-2222-2222-222222222208', 70.00); -- Problem Solving: 70
+-- Role 1: Data Engineer (6 competencies)
+INSERT INTO role_competencies (role_id, competency_id, rank, required_level) VALUES
+('11111111-1111-1111-1111-111111111101', '22222222-2222-2222-2222-222222222101', 1, 85.00), -- SQL & Data Modeling
+('11111111-1111-1111-1111-111111111101', '22222222-2222-2222-2222-222222222102', 2, 80.00), -- Python / Scala
+('11111111-1111-1111-1111-111111111101', '22222222-2222-2222-2222-222222222103', 3, 75.00), -- Distributed Computing & Big Data
+('11111111-1111-1111-1111-111111111101', '22222222-2222-2222-2222-222222222104', 4, 80.00), -- Data Pipelining & Orchestration
+('11111111-1111-1111-1111-111111111101', '22222222-2222-2222-2222-222222222105', 5, 75.00), -- Data Warehousing & Cloud
+('11111111-1111-1111-1111-111111111101', '22222222-2222-2222-2222-222222222106', 6, 70.00); -- Streaming Data Processing
 
--- Role 2: Data Analyst
-INSERT INTO role_competencies (role_id, competency_id, required_level) VALUES
-('11111111-1111-1111-1111-111111111102', '22222222-2222-2222-2222-222222222201', 70.00), -- Python: 70
-('11111111-1111-1111-1111-111111111102', '22222222-2222-2222-2222-222222222202', 80.00), -- SQL: 80
-('11111111-1111-1111-1111-111111111102', '22222222-2222-2222-2222-222222222203', 55.00), -- Sampling: 55
-('11111111-1111-1111-1111-111111111102', '22222222-2222-2222-2222-222222222204', 80.00), -- Data Visualization: 80
-('11111111-1111-1111-1111-111111111102', '22222222-2222-2222-2222-222222222205', 70.00), -- Statistics: 70
-('11111111-1111-1111-1111-111111111102', '22222222-2222-2222-2222-222222222206', 80.00), -- Data Cleaning: 80
-('11111111-1111-1111-1111-111111111102', '22222222-2222-2222-2222-222222222207', 85.00), -- Data Analysis: 85
-('11111111-1111-1111-1111-111111111102', '22222222-2222-2222-2222-222222222208', 75.00); -- Problem Solving: 75
+-- Role 2: Cybersecurity Analyst / Engineer (5 competencies from reference)
+INSERT INTO role_competencies (role_id, competency_id, rank, required_level) VALUES
+('11111111-1111-1111-1111-111111111102', '22222222-2222-2222-2222-222222222201', 1, 85.00), -- Network & OS Fundamentals
+('11111111-1111-1111-1111-111111111102', '22222222-2222-2222-2222-222222222202', 2, 80.00), -- Threat Detection & SIEM
+('11111111-1111-1111-1111-111111111102', '22222222-2222-2222-2222-222222222203', 3, 75.00), -- Vulnerability Assessment & Pen Testing
+('11111111-1111-1111-1111-111111111102', '22222222-2222-2222-2222-222222222204', 4, 75.00), -- Identity & Access Management (IAM)
+('11111111-1111-1111-1111-111111111102', '22222222-2222-2222-2222-222222222205', 5, 70.00); -- Incident Response & Digital Forensics
+
+-- Role 3: Network Engineer (6 competencies)
+INSERT INTO role_competencies (role_id, competency_id, rank, required_level) VALUES
+('11111111-1111-1111-1111-111111111103', '22222222-2222-2222-2222-222222222301', 1, 85.00), -- Routing & Switching Fundamentals
+('11111111-1111-1111-1111-111111111103', '22222222-2222-2222-2222-222222222302', 2, 80.00), -- Network Infrastructure & Hardware
+('11111111-1111-1111-1111-111111111103', '22222222-2222-2222-2222-222222222303', 3, 70.00), -- Network Automation & Scripting
+('11111111-1111-1111-1111-111111111103', '22222222-2222-2222-2222-222222222304', 4, 80.00), -- Network Security & Firewalls
+('11111111-1111-1111-1111-111111111103', '22222222-2222-2222-2222-222222222305', 5, 75.00), -- Cloud Networking & SD-WAN
+('11111111-1111-1111-1111-111111111103', '22222222-2222-2222-2222-222222222306', 6, 75.00); -- Network Monitoring & Troubleshooting
 
 -- ============================================================================
--- 4. SEED LEARNING RESOURCES (Authoritative, Real, Stable Public Sources)
+-- 4. SEED LEARNING RESOURCES (Authoritative, Real, Stable Public Documentation)
 -- ============================================================================
 INSERT INTO learning_resources (id, title, description, resource_type, url, difficulty, estimated_minutes) VALUES
 (
-    '33333333-3333-3333-3333-333333333301',
-    'The Python Tutorial: Official Python Language Primer',
-    'Comprehensive introduction to Python informal introduction, control flow, functions, and standard libraries.',
+    '33333333-3333-3333-3333-333333333101',
+    'PostgreSQL Official Tutorial: SQL Language Foundations',
+    'Official PostgreSQL documentation covering relational querying, multi-table joins, subqueries, and window functions.',
+    'documentation',
+    'https://www.postgresql.org/docs/current/tutorial.html',
+    'beginner',
+    35
+),
+(
+    '33333333-3333-3333-3333-333333333102',
+    'The Python Tutorial: Official Language Primer',
+    'Authoritative guide to Python syntax, data structures, object-oriented concepts, and standard library modules.',
     'documentation',
     'https://docs.python.org/3/tutorial/',
     'beginner',
     45
 ),
 (
-    '33333333-3333-3333-3333-333333333302',
-    'Python Data Structures: Lists, Dictionaries, and Sets',
-    'Deep dive into in-memory collection structures, list comprehensions, and dictionary indexing in Python.',
+    '33333333-3333-3333-3333-333333333103',
+    'Apache Spark Quick Start Guide',
+    'Getting started with Spark DataFrames, distributed datasets, PySpark interactive shell, and cluster deployment basics.',
     'documentation',
-    'https://docs.python.org/3/tutorial/datastructures.html',
+    'https://spark.apache.org/docs/latest/quick-start.html',
     'intermediate',
-    30
+    40
 ),
 (
-    '33333333-3333-3333-3333-333333333303',
-    'PostgreSQL Tutorial: Getting Started with Relational SQL',
-    'Structured guide to basic SELECT statements, column filtering, ordering, and relational table concepts.',
+    '33333333-3333-3333-3333-333333333104',
+    'Apache Airflow Tutorial: Orchestrating Data Pipelines',
+    'Official guide to authoring Directed Acyclic Graphs (DAGs), defining tasks, operators, and scheduling robust ETL pipelines.',
     'tutorial',
-    'https://www.postgresqltutorial.com/postgresql-getting-started/',
-    'beginner',
-    30
+    'https://airflow.apache.org/docs/apache-airflow/stable/tutorial/index.html',
+    'intermediate',
+    40
 ),
 (
-    '33333333-3333-3333-3333-333333333304',
-    'PostgreSQL Joins: Inner, Left, and Outer Joins Explained',
-    'Clear visual explanations and SQL syntax for joining related tables in PostgreSQL.',
-    'tutorial',
-    'https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-joins/',
+    '33333333-3333-3333-3333-333333333105',
+    'AWS Redshift Database Developer Guide',
+    'Architecture overview of cloud data warehousing, columnar storage, distribution keys, and MPP query execution.',
+    'documentation',
+    'https://docs.aws.amazon.com/redshift/latest/dg/welcome.html',
     'intermediate',
     35
 ),
 (
-    '33333333-3333-3333-3333-333333333305',
-    'Khan Academy: Study Design & Sampling Methods',
-    'Foundational video explanation of random sampling techniques, cluster sampling, and avoiding selection bias.',
-    'video',
-    'https://www.khanacademy.org/math/statistics-probability/designing-studies/sampling-methods-stats/v/techniques-for-generating-a-random-sample',
-    'beginner',
-    20
+    '33333333-3333-3333-3333-333333333106',
+    'Apache Kafka Quickstart: Event Streaming Fundamentals',
+    'Step-by-step introduction to event topics, producers, consumers, partition scaling, and real-time streaming architectures.',
+    'tutorial',
+    'https://kafka.apache.org/documentation/#quickstart',
+    'intermediate',
+    30
 ),
 (
-    '33333333-3333-3333-3333-333333333306',
-    'Khan Academy: Sampling Distributions & Central Limit Theorem',
-    'In-depth interactive course on how sampling distributions behave under varied sample sizes.',
+    '33333333-3333-3333-3333-333333333201',
+    'Linux Journey: Operating System & Network Essentials',
+    'Interactive community curriculum covering Linux CLI, process hierarchy, user permissions, and TCP/IP networking.',
     'tutorial',
-    'https://www.khanacademy.org/math/ap-statistics/sampling-distributions-ap',
+    'https://linuxjourney.com/',
+    'beginner',
+    35
+),
+(
+    '33333333-3333-3333-3333-333333333202',
+    'Splunk Search Tutorial: SIEM & Log Analysis',
+    'Hands-on tutorial for querying security logs, building alerts, correlating incidents, and generating SOC dashboards.',
+    'tutorial',
+    'https://docs.splunk.com/Documentation/Splunk/latest/SearchTutorial/WelcometotheSearchTutorial',
     'intermediate',
     45
 ),
 (
-    '33333333-3333-3333-3333-333333333307',
-    'Matplotlib Pyplot Tutorial: Foundations of Data Plotting',
-    'Official quick-start guide to generating line plots, scatter plots, bar graphs, and styling charts.',
-    'documentation',
-    'https://matplotlib.org/stable/tutorials/pyplot.html',
+    '33333333-3333-3333-3333-333333333203',
+    'OWASP Top 10 Security Risks',
+    'Industry standard awareness document detailing critical vulnerabilities including injection, broken auth, and SSRF.',
+    'guide',
+    'https://owasp.org/www-project-top-ten/',
+    'intermediate',
+    30
+),
+(
+    '33333333-3333-3333-3333-333333333204',
+    'NIST SP 800-63: Digital Identity & Access Management Guidelines',
+    'Federal guidelines on identity proofing, multi-factor authentication (MFA), and zero trust identity assertion.',
+    'pdf',
+    'https://csrc.nist.gov/publications/detail/sp/800-63-3/final',
+    'advanced',
+    40
+),
+(
+    '33333333-3333-3333-3333-333333333205',
+    'NIST SP 800-61 Rev 2: Computer Security Incident Handling Guide',
+    'Authoritative playbook on incident response lifecycle: preparation, detection, containment, eradication, and post-incident analysis.',
+    'pdf',
+    'https://csrc.nist.gov/publications/detail/sp/800-61/rev-2/final',
+    'advanced',
+    45
+),
+(
+    '33333333-3333-3333-3333-333333333301',
+    'Cisco Networking Academy: Routing & Switching Concepts',
+    'Foundational guide to IP routing mechanisms, packet forwarding, router lookup tables, and subnet design.',
+    'article',
+    'https://www.cisco.com/c/en/us/support/docs/ip/routing-information-protocol-rip/13769-39.html',
     'beginner',
     30
 ),
 (
-    '33333333-3333-3333-3333-333333333308',
-    'Seaborn User Guide: Statistical Data Visualization in Python',
-    'High-level charting interface for dataset exploration, categorical plots, and statistical aggregation.',
+    '33333333-3333-3333-3333-333333333302',
+    'Ansible Network Automation Documentation',
+    'Official Ansible documentation for automating switch and router configurations, ACL deployment, and idempotency.',
     'documentation',
-    'https://seaborn.pydata.org/tutorial.html',
+    'https://docs.ansible.com/ansible/latest/network/index.html',
     'intermediate',
     35
 ),
 (
-    '33333333-3333-3333-3333-333333333309',
-    'Khan Academy: Summarizing Quantitative Data & Distributions',
-    'Interactive lessons covering mean, median, standard deviation, interquartile range, and variance.',
-    'tutorial',
-    'https://www.khanacademy.org/math/statistics-probability/summarizing-quantitative-data',
-    'beginner',
+    '33333333-3333-3333-3333-333333333303',
+    'AWS Virtual Private Cloud (VPC) User Guide',
+    'Comprehensive documentation on cloud subnets, route tables, internet gateways, VPC peering, and security groups.',
+    'documentation',
+    'https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html',
+    'intermediate',
     40
 ),
 (
-    '33333333-3333-3333-3333-333333333310',
-    'Khan Academy: Hypothesis Testing & Significance Tests',
-    'Comprehensive foundation in null hypothesis formulation, z-tests, t-tests, and p-value decision rules.',
-    'tutorial',
-    'https://www.khanacademy.org/math/statistics-probability/significance-tests-one-sample',
-    'intermediate',
-    50
-),
-(
-    '33333333-3333-3333-3333-333333333311',
-    'pandas Guide: Working with Missing Data and Inconsistencies',
-    'Practical documentation on detecting, dropping, imputing, and replacing null values in DataFrame columns.',
+    '33333333-3333-3333-3333-333333333304',
+    'Wireshark User Guide: Packet Inspection & Network Troubleshooting',
+    'Practical reference on capturing live traffic, applying display filters, TCP handshake diagnosis, and latency analysis.',
     'documentation',
-    'https://pandas.pydata.org/docs/user_guide/missing_data.html',
+    'https://www.wireshark.org/docs/wsug_html_chunked/',
     'intermediate',
-    30
-),
-(
-    '33333333-3333-3333-3333-333333333312',
-    'pandas: 10 Minutes to pandas - Essential Data Wrangling',
-    'Fast-paced overview of Series, DataFrames, indexing, aggregation, grouping, and CSV file loading.',
-    'tutorial',
-    'https://pandas.pydata.org/docs/user_guide/10min.html',
-    'beginner',
-    25
-),
-(
-    '33333333-3333-3333-3333-333333333313',
-    'NumPy Quickstart: Array Manipulation and Vectorized Math',
-    'Core scientific computing fundamentals: multi-dimensional arrays, mathematical broadcasting, and vector slicing.',
-    'documentation',
-    'https://numpy.org/doc/stable/user/quickstart.html',
-    'beginner',
-    30
-),
-(
-    '33333333-3333-3333-3333-333333333314',
-    'Python Programming FAQ: Algorithmic Logic & Debugging',
-    'Official architectural strategies for decomposing complex logic bugs, recursion, and error diagnosis.',
-    'article',
-    'https://docs.python.org/3/faq/programming.html',
-    'intermediate',
-    25
-),
-(
-    '33333333-3333-3333-3333-333333333315',
-    'Khan Academy: Logic Puzzles & Analytical Thinking',
-    'Challenging logic problems designed to develop rigorous algorithmic reasoning and problem decomposition.',
-    'exercise',
-    'https://www.khanacademy.org/math/math-for-fun-and-glory/puzzles',
-    'beginner',
-    30
+    35
 );
 
 -- ============================================================================
 -- 5. SEED COMPETENCY_RESOURCES (Mappings with Recommendation Priorities)
 -- ============================================================================
 
--- Competency 1: Python
+-- Data Engineer Mappings
 INSERT INTO competency_resources (competency_id, resource_id, priority) VALUES
-('22222222-2222-2222-2222-222222222201', '33333333-3333-3333-3333-333333333301', 1), -- Python Tutorial (Priority 1)
-('22222222-2222-2222-2222-222222222201', '33333333-3333-3333-3333-333333333302', 2); -- Data Structures (Priority 2)
+('22222222-2222-2222-2222-222222222101', '33333333-3333-3333-3333-333333333101', 1), -- SQL & Data Modeling -> Postgres Tutorial
+('22222222-2222-2222-2222-222222222102', '33333333-3333-3333-3333-333333333102', 1), -- Python / Scala -> Python Tutorial
+('22222222-2222-2222-2222-222222222103', '33333333-3333-3333-3333-333333333103', 1), -- Distributed Computing -> Spark Quickstart
+('22222222-2222-2222-2222-222222222104', '33333333-3333-3333-3333-333333333104', 1), -- Data Pipelining -> Airflow Tutorial
+('22222222-2222-2222-2222-222222222105', '33333333-3333-3333-3333-333333333105', 1), -- Data Warehousing -> AWS Redshift Guide
+('22222222-2222-2222-2222-222222222106', '33333333-3333-3333-3333-333333333106', 1); -- Streaming Data -> Kafka Quickstart
 
--- Competency 2: SQL
+-- Cybersecurity Analyst / Engineer Mappings
 INSERT INTO competency_resources (competency_id, resource_id, priority) VALUES
-('22222222-2222-2222-2222-222222222202', '33333333-3333-3333-3333-333333333303', 1), -- Postgres Tutorial (Priority 1)
-('22222222-2222-2222-2222-222222222202', '33333333-3333-3333-3333-333333333304', 2); -- Postgres Joins (Priority 2)
+('22222222-2222-2222-2222-222222222201', '33333333-3333-3333-3333-333333333201', 1), -- Network & OS -> Linux Journey
+('22222222-2222-2222-2222-222222222202', '33333333-3333-3333-3333-333333333202', 1), -- Threat Detection & SIEM -> Splunk Tutorial
+('22222222-2222-2222-2222-222222222203', '33333333-3333-3333-3333-333333333203', 1), -- Vulnerability Assessment -> OWASP Top 10
+('22222222-2222-2222-2222-222222222204', '33333333-3333-3333-3333-333333333204', 1), -- IAM -> NIST SP 800-63
+('22222222-2222-2222-2222-222222222205', '33333333-3333-3333-3333-333333333205', 1); -- Incident Response -> NIST SP 800-61
 
--- Competency 3: Sampling
+-- Network Engineer Mappings
 INSERT INTO competency_resources (competency_id, resource_id, priority) VALUES
-('22222222-2222-2222-2222-222222222203', '33333333-3333-3333-3333-333333333305', 1), -- Sampling Methods Video (Priority 1)
-('22222222-2222-2222-2222-222222222203', '33333333-3333-3333-3333-333333333306', 2); -- Sampling Distributions (Priority 2)
-
--- Competency 4: Data Visualization
-INSERT INTO competency_resources (competency_id, resource_id, priority) VALUES
-('22222222-2222-2222-2222-222222222204', '33333333-3333-3333-3333-333333333307', 1), -- Matplotlib Pyplot (Priority 1)
-('22222222-2222-2222-2222-222222222204', '33333333-3333-3333-3333-333333333308', 2); -- Seaborn User Guide (Priority 2)
-
--- Competency 5: Statistics
-INSERT INTO competency_resources (competency_id, resource_id, priority) VALUES
-('22222222-2222-2222-2222-222222222205', '33333333-3333-3333-3333-333333333309', 1), -- Summarizing Quant Data (Priority 1)
-('22222222-2222-2222-2222-222222222205', '33333333-3333-3333-3333-333333333310', 2); -- Hypothesis Testing (Priority 2)
-
--- Competency 6: Data Cleaning
-INSERT INTO competency_resources (competency_id, resource_id, priority) VALUES
-('22222222-2222-2222-2222-222222222206', '33333333-3333-3333-3333-333333333311', 1), -- Missing Data Handling (Priority 1)
-('22222222-2222-2222-2222-222222222206', '33333333-3333-3333-3333-333333333312', 2); -- 10 Mins to pandas (Priority 2)
-
--- Competency 7: Data Analysis
-INSERT INTO competency_resources (competency_id, resource_id, priority) VALUES
-('22222222-2222-2222-2222-222222222207', '33333333-3333-3333-3333-333333333312', 1), -- 10 Mins to pandas (Priority 1)
-('22222222-2222-2222-2222-222222222207', '33333333-3333-3333-3333-333333333313', 2); -- NumPy Quickstart (Priority 2)
-
--- Competency 8: Problem Solving
-INSERT INTO competency_resources (competency_id, resource_id, priority) VALUES
-('22222222-2222-2222-2222-222222222208', '33333333-3333-3333-3333-333333333315', 1), -- Khan Logic Puzzles (Priority 1)
-('22222222-2222-2222-2222-222222222208', '33333333-3333-3333-3333-333333333314', 2); -- Python Programming FAQ (Priority 2)
+('22222222-2222-2222-2222-222222222301', '33333333-3333-3333-3333-333333333301', 1), -- Routing & Switching -> Cisco Routing Concepts
+('22222222-2222-2222-2222-222222222302', '33333333-3333-3333-3333-333333333301', 2), -- Hardware -> Cisco Routing Concepts (Priority 2)
+('22222222-2222-2222-2222-222222222303', '33333333-3333-3333-3333-333333333302', 1), -- Automation -> Ansible Network Guide
+('22222222-2222-2222-2222-222222222304', '33333333-3333-3333-3333-333333333203', 2), -- Security & Firewalls -> OWASP Top 10 (Priority 2)
+('22222222-2222-2222-2222-222222222305', '33333333-3333-3333-3333-333333333303', 1), -- Cloud Networking -> AWS VPC Guide
+('22222222-2222-2222-2222-222222222306', '33333333-3333-3333-3333-333333333304', 1); -- Monitoring -> Wireshark Guide
 
 -- ============================================================================
--- 6. SEED DEMO USER & PROTOTYPE EVIDENCE LOGS
+-- 6. SEED DEMO USER & PROTOTYPE EVIDENCE LOG
 -- ============================================================================
 INSERT INTO users (id, name, email, role_id) VALUES
 (
     '00000000-0000-0000-0000-000000000001',
-    'Alex Chen',
-    'alex.chen@example.com',
-    '11111111-1111-1111-1111-111111111101' -- Enrolled as Statistical Officer
+    'Jordan Taylor',
+    'jordan.taylor@example.com',
+    '11111111-1111-1111-1111-111111111101' -- Enrolled as Data Engineer
 );
 
--- Seed an initial observable diagnostic evidence log for Alex Chen in Python (Diagnostic Score: 35.0, Weight: 1.0)
+-- Seed initial observable diagnostic evidence for Jordan in SQL & Data Modeling (Diagnostic Score: 40.0, Weight: 1.0)
 INSERT INTO evidence_logs (id, user_id, competency_id, evidence_type, source_id, score, weight, metadata) VALUES
 (
     '44444444-4444-4444-4444-444444444401',
     '00000000-0000-0000-0000-000000000001',
-    '22222222-2222-2222-2222-222222222201',
+    '22222222-2222-2222-2222-222222222101',
     'diagnostic',
     'diag_session_initial',
-    35.00,
+    40.00,
     1.00,
-    '{"assessment_title": "Baseline Diagnostic", "items_attempted": 3, "items_correct": 1}'::jsonb
+    '{"assessment_title": "Baseline Diagnostic", "topic": "SQL & Data Modeling", "items_attempted": 5, "items_correct": 2}'::jsonb
 );
