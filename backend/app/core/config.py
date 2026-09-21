@@ -49,10 +49,18 @@ DIFFICULTY_DISTRIBUTIONS = {
     "balanced": {"L1_2": 0.30, "L3": 0.50, "L4_5": 0.20},# For target <= 70.0
 }
 
+import os
+
 # Adaptive Loop Parameters
-MATERIALS_TO_REASSESS_THRESHOLD: int = 3   # Number of completed modules required for auto-reassessment
-MIN_PASSING_PREREQUISITE_SCORE: float = 70.0 # Min score on prerequisite before locked competency opens
-WEAK_TOPIC_ACCURACY_THRESHOLD: float = 0.60  # Below 60% accuracy marks topic as weak
-WEAK_TOPIC_MIN_QUESTIONS: int = 2           # Min question sample count to flag weak topic
-PLATEAU_CYCLE_THRESHOLD: int = 3            # Consecutive cycles without >5% improvement triggers plateau alert
-PLATEAU_DELTA_THRESHOLD: float = 5.0        # Min score increase % to avoid plateau flag
+MATERIALS_TO_REASSESS_THRESHOLD: int = int(os.getenv("MATERIALS_TO_REASSESS_THRESHOLD", "3"))   # Completed modules to trigger auto-reassessment
+MIN_PASSING_PREREQUISITE_SCORE: float = float(os.getenv("MIN_PASSING_PREREQUISITE_SCORE", "70.0")) # Min score on prerequisite before locked competency opens
+WEAK_TOPIC_ACCURACY_THRESHOLD: float = float(os.getenv("WEAK_TOPIC_ACCURACY_THRESHOLD", "0.60"))  # Below 60% accuracy marks topic as weak
+WEAK_TOPIC_MIN_QUESTIONS: int = int(os.getenv("WEAK_TOPIC_MIN_QUESTIONS", "2"))           # Min question sample count to flag weak topic
+PLATEAU_CYCLE_THRESHOLD: int = int(os.getenv("PLATEAU_CYCLE_THRESHOLD", "3"))            # Consecutive cycles without >5% improvement triggers plateau alert
+PLATEAU_DELTA_THRESHOLD: float = float(os.getenv("PLATEAU_DELTA_THRESHOLD", "5.0"))        # Min score increase % to avoid plateau flag
+
+# Context-Aware Reassessment & RAG Retrieval Parameters
+RAG_TOP_K_CHUNKS: int = int(os.getenv("RAG_TOP_K_CHUNKS", "5"))                            # Top semantic chunks retrieved per question/topic
+REASSESS_QUESTION_COUNT: int = int(os.getenv("REASSESS_QUESTION_COUNT", "5"))              # Target question count for reassessment quiz
+DYNAMIC_REASSESSMENT_ENABLED: bool = os.getenv("DYNAMIC_REASSESSMENT_ENABLED", "true").lower() in ("true", "1", "yes")
+

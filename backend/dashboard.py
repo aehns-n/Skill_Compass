@@ -118,9 +118,7 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "🛡️ Freshness & Authority Radar"
 ])
 
-# -----------------------------------------------------------------------------
 # TAB 1: CURATION & INGESTION
-# -----------------------------------------------------------------------------
 with tab1:
     st.subheader("Curated & Ingested Learning Resources")
     
@@ -160,9 +158,7 @@ with tab1:
     ])
     st.dataframe(run_df, use_container_width=True, hide_index=True)
 
-# -----------------------------------------------------------------------------
 # TAB 2: VECTOR STORE & LATENCY
-# -----------------------------------------------------------------------------
 with tab2:
     st.subheader("Semantic Vector Index & Retrieval Benchmarking")
     
@@ -191,9 +187,7 @@ with tab2:
         q_report = pipeline.vector_store.generate_quality_report()
         st.json(q_report)
 
-# -----------------------------------------------------------------------------
 # TAB 3: QUESTION BANK & QA
-# -----------------------------------------------------------------------------
 with tab3:
     st.subheader("Grounded Question Bank & 4-Tier Automated Validation")
     
@@ -228,9 +222,7 @@ with tab3:
             st.markdown(f"💡 **Explanation:** {q.get('explanation')}")
             st.markdown(f"📊 **Composite Quality Score:** `{q.get('quality_score', 95.0):.1f}/100`")
 
-# -----------------------------------------------------------------------------
 # TAB 4: DIAGNOSTIC ASSESSMENT SIMULATOR
-# -----------------------------------------------------------------------------
 with tab4:
     st.subheader("Skill-Gap Engine Diagnostic Assessment Simulator")
     
@@ -290,9 +282,7 @@ with tab4:
                         r_info = rec["recommended_resource"]
                         st.warning(f"**Deficit in:** `{rec['topic_subtopic']}` → Recommended Resource: [{r_info.get('title')}]({r_info.get('url')}) ({r_info.get('estimated_minutes', 45)} mins)")
 
-# -----------------------------------------------------------------------------
 # TAB 5: FRESHNESS & AUTHORITY RADAR
-# -----------------------------------------------------------------------------
 with tab5:
     st.subheader("Source Freshness & Domain Authority Monitoring Radar")
     

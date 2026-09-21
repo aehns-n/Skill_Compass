@@ -159,6 +159,11 @@ def test_learning_progress_and_reassessment_trigger():
     reassessment = ReassessmentService.generate_reassessment(user_id=user_id, competency_id=sql_cid)
     assert reassessment["type"] == "REASSESS"
     assert len(reassessment["questions"]) >= 3
+    # Check context-aware metadata fields
+    first_q = reassessment["questions"][0]
+    assert "source_resource_id" in first_q
+    assert "is_weak_topic_targeted" in first_q
+
 
 def test_score_audit_recomputation():
     """Verifies that audit_competency_score mathematically proves stored score equals raw evidence."""

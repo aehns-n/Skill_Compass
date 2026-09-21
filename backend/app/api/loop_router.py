@@ -37,9 +37,7 @@ from app.services.demo.demo_seeder import DemoSeeder
 
 router = APIRouter(prefix="/api", tags=["SkillCompass Loop & Learning Engine"])
 
-# ============================================================================
 # 1. PROFILE & ROLES MODULE (Phase 2)
-# ============================================================================
 
 @router.get("/roles", response_model=List[RoleDetail])
 def get_roles():
@@ -74,9 +72,7 @@ def get_profile(user_id: str = Query("demo-user-001")):
     """Retrieves learner profile and current competency status."""
     return ProfileService.get_profile(user_id)
 
-# ============================================================================
-# 2. ASSESSMENTS & DIAGNOSE MODULE (Phase 3)
-# ============================================================================
+# 2. ASSESSMENT ENGINE (Phase 3 & Phase 5)
 
 @router.get("/assessments/baseline", response_model=AssessmentCreateResponse)
 def get_baseline_assessment(
@@ -111,9 +107,7 @@ def get_competency_graph(user_id: str = Query("demo-user-001")):
     """Produces the role's prerequisite DAG with node statuses (blocked, gated, ready, mastered)."""
     return DiagnoseService.get_competency_graph(user_id)
 
-# ============================================================================
-# 3. RECOMMEND & LEARN MODULE (Phase 4)
-# ============================================================================
+# 3. DIAGNOSIS & TOPOLOGICAL GATING GRAPH (Phase 4)
 
 @router.get("/learning/path", response_model=LearningPathResponse)
 def get_learning_path(user_id: str = Query("demo-user-001")):
@@ -144,10 +138,6 @@ def update_learning_progress(req: LearningProgressUpdateRequest):
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-# ============================================================================
-# 4. REASSESS MODULE (Phase 5)
-# ============================================================================
-
 @router.get("/assessments/reassess", response_model=AssessmentCreateResponse)
 def get_reassessment(
     competency_id: str = Query(...),
@@ -156,9 +146,7 @@ def get_reassessment(
     """Assembles 3-6 targeted MCQs built strictly from chunks of completed resources."""
     return ReassessmentService.generate_reassessment(user_id=user_id, competency_id=competency_id)
 
-# ============================================================================
-# 5. MEASURE & AUDIT MODULE (Phase 6)
-# ============================================================================
+# 5. MEASUREMENT & AUDIT RECOMPUTATION (Phase 6)
 
 @router.get("/measure/progress", response_model=List[ScoreTimeSeriesPoint])
 def get_measure_progress(user_id: str = Query("demo-user-001")):
@@ -183,10 +171,6 @@ def audit_competency_score(
     """Mathematical recomputation audit: verifies stored score exactly equals evidence ledger."""
     return MeasureService.audit_competency_score(user_id=user_id, competency_id=competency_id)
 
-# ============================================================================
-# 6. LOOP ORCHESTRATION & STATE MACHINE (Phase 7)
-# ============================================================================
-
 @router.get("/loop/state", response_model=LoopStateResponse)
 def get_loop_state(user_id: str = Query("demo-user-001")):
     """Returns stage progression and cycle counts across all role competencies."""
@@ -210,9 +194,7 @@ def get_next_action(user_id: str = Query("demo-user-001")):
     """Returns the single deterministic primary CTA for the UI."""
     return LoopStateMachine.get_next_action(user_id)
 
-# ============================================================================
-# 7. DEV/DEMO SEED ENDPOINT (Phase 8)
-# ============================================================================
+# 7. DEV/DEMO SEED ENDPOINT
 
 @router.post("/demo/seed")
 def seed_demo(
