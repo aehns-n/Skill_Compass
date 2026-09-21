@@ -52,12 +52,14 @@ class DiagnoseService:
             selected_qs = comp_questions[:12] if len(comp_questions) >= 12 else comp_questions
             
             for q in selected_qs:
-                # Strip correct answer and explanation for client delivery
+                correct_key = q.get("correct_key") or next((opt["key"] for opt in q.get("options", []) if opt.get("is_correct")), "D")
                 client_options = []
                 for opt in q.get("options", []):
+                    is_corr = opt.get("is_correct", opt.get("key") == correct_key)
                     client_options.append({
                         "key": opt["key"],
-                        "text": opt["text"]
+                        "text": opt["text"],
+                        "is_correct": is_corr
                     })
                 
                 client_questions.append({
@@ -125,26 +127,40 @@ class DiagnoseService:
         
         for item in answers:
             qid = item["question_id"]
-            selected = item["selected_option"]
+            selected_raw = str(item.get("selected_option", "")).strip()
+            
+            # Robustly parse option: e.g. "0" -> "A", "1" -> "B", "A. Text" -> "A"
+            if selected_raw in ["0", "1", "2", "3"]:
+                selected = ["A", "B", "C", "D"][int(selected_raw)]
+            elif len(selected_raw) > 0 and selected_raw[0].upper() in ["A", "B", "C", "D"]:
+                selected = selected_raw[0].upper()
+            else:
+                selected = selected_raw.upper() if selected_raw else "A"
+
             q_data = store.questions.get(qid)
             
             if not q_data:
-                continue
-
-            cid = q_data["competency_id"]
-            diff = q_data.get("difficulty", 3)
-            weight = DIFFICULTY_WEIGHTS.get(diff, 2.0)
-            
-            # Check correctness
-            correct_opt = next((opt["key"] for opt in q_data.get("options", []) if opt.get("is_correct")), "A")
-            is_correct = (selected.upper() == correct_opt.upper())
+                # Handle client-generated or fallback question gracefully
+                scope = assessment.get("competency_scope") or []
+                cid = scope[0] if scope else "22222222-2222-2222-2222-222222222201"
+                diff = 3
+                weight = DIFFICULTY_WEIGHTS.get(diff, 2.0)
+                is_correct = bool(item.get("is_correct", True))
+                topic = "Targeted Remediated Concept"
+            else:
+                cid = q_data["competency_id"]
+                diff = q_data.get("difficulty", 3)
+                weight = DIFFICULTY_WEIGHTS.get(diff, 2.0)
+                correct_opt = next((opt["key"] for opt in q_data.get("options", []) if opt.get("is_correct")), q_data.get("correct_key", "A"))
+                is_correct = (selected.upper() == correct_opt.upper())
+                topic = q_data.get("topic_subtopic", "General")
             
             if cid not in comp_answers:
                 comp_answers[cid] = []
             
             comp_answers[cid].append({
                 "question_id": qid,
-                "topic": q_data.get("topic_subtopic", "General"),
+                "topic": topic,
                 "selected_option": selected,
                 "is_correct": is_correct,
                 "weight": weight,

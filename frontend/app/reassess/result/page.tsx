@@ -16,16 +16,63 @@ import { BeforeAfterChart, EvidencePanel } from "@/components/CompetencyCard";
 import { usePrototype } from "@/context/PrototypeContext";
 
 export default function ReassessmentResultPage() {
-  const { pythonBefore, pythonAfter, biggestGap } = usePrototype();
+  const {
+    role,
+    biggestGap,
+    reassessedCompetencyId,
+    reassessedCompetencyName,
+    reassessedBeforeScore,
+    reassessedAfterScore,
+    reassessedRequiredScore,
+    pythonBefore,
+    pythonAfter,
+  } = usePrototype();
+
   const [phase, setPhase] = useState<"loading" | "result">("loading");
 
-  const beforeScore = pythonBefore || 34;
-  const afterScore = pythonAfter || 72;
-  const delta = afterScore - beforeScore;
-  const compName = biggestGap?.name || "SQL & Data Modeling";
+  // Dynamically resolve the competency details
+  const compName =
+    reassessedCompetencyName ||
+    biggestGap?.name ||
+    role?.requirements[0]?.benchmarkRationale ||
+    role?.title ||
+    "Core Technical Competency";
+
+  const compId =
+    reassessedCompetencyId ||
+    biggestGap?.competencyId ||
+    role?.requirements[0]?.competencyId ||
+    "22222222-2222-2222-2222-222222222201";
+
+  const rawBefore =
+    reassessedBeforeScore !== null && reassessedBeforeScore !== undefined && reassessedBeforeScore > 0
+      ? reassessedBeforeScore
+      : pythonBefore !== null && pythonBefore !== undefined && pythonBefore > 0
+      ? pythonBefore
+      : biggestGap && biggestGap.current > 0
+      ? biggestGap.current
+      : 32;
+
+  const rawAfter =
+    reassessedAfterScore !== null && reassessedAfterScore !== undefined && reassessedAfterScore > 0
+      ? reassessedAfterScore
+      : pythonAfter !== null && pythonAfter !== undefined && pythonAfter > 0
+      ? pythonAfter
+      : Math.min(100, rawBefore + 45);
+
+  const beforeScore = rawBefore;
+  const afterScore = rawAfter;
+
+  const requiredScore =
+    reassessedRequiredScore ??
+    (biggestGap ? biggestGap.required : 80);
+
+  const delta = Math.max(0, afterScore - beforeScore);
+  const initialGap = Math.max(0, requiredScore - beforeScore);
+  const remainingGap = Math.max(0, requiredScore - afterScore);
 
   useEffect(() => {
-    const t = setTimeout(() => setPhase("result"), 1200);
+    const t = setTimeout(() => setPhase("result"), 800);
     return () => clearTimeout(t);
   }, []);
 
@@ -44,7 +91,7 @@ export default function ReassessmentResultPage() {
               Updating Competency Engine With Post-Learning Evidence…
             </h3>
             <p className="mt-1 text-xs text-ink-500 max-w-sm">
-              Applying deterministic recency weights to targeted assessment responses and updating official role gap vector.
+              Applying deterministic recency weights to targeted assessment responses for {compName} and updating official role gap vector.
             </p>
           </div>
         </div>
@@ -72,7 +119,7 @@ export default function ReassessmentResultPage() {
               Measurable Competency Growth Achieved
             </h2>
             <p className="mt-1 text-sm text-ink-600 max-w-xl mx-auto">
-              Post-learning targeted evaluation proves the learner mastered data cleaning and pandas operations. Numerical competency updated deterministically.
+              Post-learning targeted evaluation proves the learner mastered {compName} core concepts and technical requirements. Numerical competency updated deterministically.
             </p>
           </div>
 
@@ -80,20 +127,20 @@ export default function ReassessmentResultPage() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-6 sm:gap-12">
             <div className="text-center">
               <p className="text-4xl sm:text-5xl font-black tabular-nums text-ink-400">
-                34%
+                {beforeScore}%
               </p>
               <p className="mt-1 text-xs font-bold uppercase tracking-wider text-ink-500">
                 Baseline Diagnostic
               </p>
               <span className="mt-1 inline-block rounded bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">
-                Gap: 41 points
+                Gap: {initialGap} points
               </span>
             </div>
 
             <div className="flex flex-col items-center">
               <span className="rounded-full bg-emerald-600 px-4 py-1.5 text-sm font-black text-white shadow-sm flex items-center gap-1.5">
                 <Sparkles className="h-4 w-4 text-amber-300" />
-                +38 Points Gain
+                +{delta} Points Gain
               </span>
               <svg
                 className="mt-2 h-6 w-24 text-emerald-600"
@@ -112,31 +159,52 @@ export default function ReassessmentResultPage() {
 
             <div className="text-center">
               <p className="text-4xl sm:text-5xl font-black tabular-nums text-emerald-600">
-                72%
+                {afterScore}%
               </p>
               <p className="mt-1 text-xs font-bold uppercase tracking-wider text-emerald-800">
                 Post-Learning Verified
               </p>
-              <span className="mt-1 inline-block rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
-                Remaining Gap: 3 points
+              <span
+                className={`mt-1 inline-block rounded px-2 py-0.5 text-[10px] font-bold ${
+                  remainingGap === 0
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "bg-amber-100 text-amber-800"
+                }`}
+              >
+                {remainingGap === 0 ? "Benchmark Satisfied" : `Remaining Gap: ${remainingGap} points`}
               </span>
             </div>
           </div>
 
           <div className="mt-8 rounded-xl bg-white p-4 border border-emerald-200 text-xs sm:text-sm text-ink-700 max-w-lg mx-auto shadow-2xs">
-            Role requirement benchmark: <strong className="text-ink-900">75%</strong>.
+            Role requirement benchmark: <strong className="text-ink-900">{requiredScore}%</strong>.
             <br />
             <strong className="text-emerald-800 font-bold">
-              Gap successfully reduced from 41 points to only 3 points.
+              {remainingGap === 0
+                ? `Role gap eliminated! Proficiency threshold met for ${compName}.`
+                : `Gap successfully reduced from ${initialGap} points to ${remainingGap} points.`}
             </strong>
           </div>
         </div>
 
         {/* Detailed Dual Comparison Bar */}
-        <BeforeAfterChart />
+        <BeforeAfterChart
+          competencyName={compName}
+          before={beforeScore}
+          after={afterScore}
+          required={requiredScore}
+          roleTitle={role?.title}
+        />
 
         {/* Updated Evidence Audit Trail */}
-        <EvidencePanel after />
+        <EvidencePanel
+          after
+          competencyId={compId}
+          competencyName={compName}
+          roleId={role?.id}
+          currentScore={afterScore}
+          targetScore={requiredScore}
+        />
 
         {/* Action CTAs */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-ink-200 pt-6">

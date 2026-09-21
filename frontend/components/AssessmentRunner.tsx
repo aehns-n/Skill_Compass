@@ -61,14 +61,20 @@ export function AssessmentRunner({
     questions.forEach((question, idx) => {
       const cIdx = question.correctIndex ?? 0;
       if (targeted) {
-        // Targeted reassessment: 5/6 correct
-        demoAnswers[question.id] = idx === 4 ? (cIdx + 1) % 4 : cIdx;
+        // Targeted reassessment: 5/6 correct (verified mastery outcome)
+        demoAnswers[question.id] = idx === questions.length - 1 ? (cIdx + 1) % 4 : cIdx;
       } else {
-        // Diagnostic: lower score on primary gap, exact demo baseline
-        if (question.competencyId === "python" || question.competencyId.endsWith("101")) {
+        // Diagnostic: lower score on primary gap, realistic baseline
+        const isPrimaryGap =
+          question.competencyId === "python" ||
+          question.competencyId.endsWith("101") ||
+          question.competencyId.endsWith("201") ||
+          question.competencyId.endsWith("301");
+
+        if (isPrimaryGap) {
           demoAnswers[question.id] = idx < 2 ? cIdx : (cIdx + 1) % 4;
         } else {
-          demoAnswers[question.id] = cIdx;
+          demoAnswers[question.id] = idx % 2 === 0 ? cIdx : (cIdx + 1) % 4;
         }
       }
     });

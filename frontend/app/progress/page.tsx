@@ -51,6 +51,10 @@ export default function ProgressPage() {
     pythonBefore,
     biggestGap,
     role,
+    reassessedCompetencyId,
+    reassessedCompetencyName,
+    reassessedBeforeScore,
+    reassessedAfterScore,
   } = usePrototype();
 
   const [timeSeries, setTimeSeries] = useState<ScoreTimeSeriesPoint[]>([]);
@@ -61,7 +65,11 @@ export default function ProgressPage() {
   const [showAuditModal, setShowAuditModal] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const primaryCompId = biggestGap?.competencyId || "22222222-2222-2222-2222-222222222101";
+  const primaryCompId =
+    reassessedCompetencyId ||
+    biggestGap?.competencyId ||
+    role?.requirements[0]?.competencyId ||
+    "22222222-2222-2222-2222-222222222201";
 
   const loadMeasureData = async () => {
     setLoading(true);
@@ -121,32 +129,76 @@ export default function ProgressPage() {
     );
   }
 
-  const isReassessed = targetedDone || pythonAfter != null || timeSeries.some((t) => t.evidence_type === "REASSESSMENT");
-  const compLabel = biggestGap?.name || "SQL & Data Modeling";
-  const beforeScore = pythonBefore || 34;
-  const afterScore = pythonAfter || 72;
+  const isReassessed =
+    targetedDone ||
+    reassessedAfterScore != null ||
+    pythonAfter != null ||
+    timeSeries.some(
+      (t) =>
+        (t.evidence_type || t.source || "").toLowerCase().includes("reassess") ||
+        (t.evidence_type || t.source || "").toLowerCase().includes("target")
+    );
+
+  const compLabel =
+    reassessedCompetencyName ||
+    biggestGap?.name ||
+    role?.requirements[0]?.benchmarkRationale ||
+    role?.title ||
+    "Primary Competency";
+
+  const beforeScore =
+    reassessedBeforeScore ??
+    pythonBefore ??
+    (biggestGap ? biggestGap.current : 30);
+
+  const afterScore =
+    reassessedAfterScore ??
+    pythonAfter ??
+    (isReassessed ? Math.min(100, beforeScore + 38) : beforeScore);
+
   const gain = Math.max(0, afterScore - beforeScore);
 
   // Compute live effectiveness highlights
-  const primaryEff = effectiveness.find((e) => e.competency_id === primaryCompId) ?? effectiveness[0];
-  const gapClosedPct = primaryEff?.pct_gap_closed ?? (isReassessed ? 92 : 0);
-  const gainPerMat = primaryEff?.gain_per_resource ?? (isReassessed ? 12.6 : 0);
-  const isPlateau = primaryEff?.plateau_flag ?? false;
+  const primaryEff =
+    effectiveness.find((e) => e.competency_id === primaryCompId) ??
+    effectiveness[0];
+
+  const gapClosedPct =
+    primaryEff?.gap_closed_pct ??
+    primaryEff?.pct_gap_closed ??
+    (isReassessed ? 92 : 0);
+
+  const gainPerMat =
+    primaryEff?.points_gained_per_material ??
+    primaryEff?.gain_per_resource ??
+    (isReassessed ? 12.6 : 0);
+
+  const isPlateau =
+    primaryEff?.is_plateaued ??
+    primaryEff?.plateau_flag ??
+    false;
 
   // Chart data: map from backend timeSeries or fall back to 2 points
-  const chartData = timeSeries.length > 0
-    ? timeSeries.map((t) => ({
-        point: t.evidence_type === "BASELINE" ? "Diagnostic Baseline" : "Targeted Reassessment",
-        score: t.score,
-        benchmark: 75,
-        date: t.date ? t.date.slice(0, 10) : "",
-      }))
-    : [
-        { point: "Diagnostic Baseline", score: beforeScore, benchmark: 75, date: "Day 1" },
-        ...(isReassessed
-          ? [{ point: "Post-Learning Reassessment", score: afterScore, benchmark: 75, date: "Day 3" }]
-          : []),
-      ];
+  const chartData =
+    timeSeries.length > 0
+      ? timeSeries.map((t) => {
+          const isBase =
+            (t.evidence_type || t.source || "").toLowerCase().includes("diag") ||
+            (t.evidence_type || t.source || "").toLowerCase().includes("base");
+          const dateStr = t.timestamp ? t.timestamp.slice(0, 10) : t.date ? t.date.slice(0, 10) : "";
+          return {
+            point: isBase ? "Diagnostic Baseline" : `${t.competency_name || "Targeted"} Reassessment`,
+            score: Math.round(t.score),
+            benchmark: 75,
+            date: dateStr,
+          };
+        })
+      : [
+          { point: "Diagnostic Baseline", score: beforeScore, benchmark: 75, date: "Day 1" },
+          ...(isReassessed
+            ? [{ point: "Post-Learning Reassessment", score: afterScore, benchmark: 75, date: "Day 3" }]
+            : []),
+        ];
 
   return (
     <Shell
@@ -415,16 +467,16 @@ export default function ProgressPage() {
                     <div>
                       <h4 className="font-bold text-ink-900">{eff.competency_name}</h4>
                       <p className="text-[11px] text-ink-500 mt-0.5">
-                        Baseline: {eff.baseline_score}% ➔ Current: {eff.current_score}% ({eff.absolute_gain >= 0 ? `+${eff.absolute_gain}` : eff.absolute_gain} pts)
+                        Baseline: {eff.baseline_score}% ➔ Current: {eff.current_score}% ({(eff.delta_score ?? eff.absolute_gain ?? (eff.current_score - eff.baseline_score)) >= 0 ? `+${eff.delta_score ?? eff.absolute_gain ?? (eff.current_score - eff.baseline_score)}` : (eff.delta_score ?? eff.absolute_gain ?? (eff.current_score - eff.baseline_score))} pts)
                       </p>
                       <p className="text-[10px] text-ink-400">
-                        {eff.materials_completed} materials studied • Yield: +{eff.gain_per_resource} pts/res
+                        {eff.materials_completed} materials studied • Yield: +{eff.points_gained_per_material ?? eff.gain_per_resource ?? 0} pts/res
                       </p>
                     </div>
 
                     <div className="text-right">
                       <span className="font-black text-sm text-emerald-700">
-                        {eff.pct_gap_closed}%
+                        {eff.gap_closed_pct ?? eff.pct_gap_closed ?? 0}%
                       </span>
                       <p className="text-[10px] font-bold text-ink-500">Gap Closed</p>
                       {eff.plateau_flag && (
@@ -439,7 +491,14 @@ export default function ProgressPage() {
             </div>
           )}
 
-          <EvidencePanel after={isReassessed} />
+          <EvidencePanel
+            after={isReassessed}
+            competencyId={primaryCompId}
+            competencyName={compLabel}
+            roleId={role?.id}
+            currentScore={isReassessed ? afterScore : beforeScore}
+            targetScore={75}
+          />
         </div>
       </div>
 

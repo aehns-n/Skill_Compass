@@ -30,7 +30,16 @@ import { competencyById, PROTOTYPE_NOTICE } from "@/data/roles";
 import { usePrototype } from "@/context/PrototypeContext";
 
 export default function DashboardPage() {
-  const { scores, biggestGap, diagnosticDone, role, pythonAfter } = usePrototype();
+  const {
+    scores,
+    biggestGap,
+    diagnosticDone,
+    role,
+    pythonAfter,
+    reassessedCompetencyId,
+    reassessedCompetencyName,
+    reassessedAfterScore,
+  } = usePrototype();
 
   if (!diagnosticDone) {
     return (
@@ -224,7 +233,14 @@ export default function DashboardPage() {
           <CompetencyHeatmap scores={scores} />
 
           {/* Expandable Evidence Inspector */}
-          <EvidencePanel after={pythonAfter != null} />
+          <EvidencePanel
+            after={pythonAfter != null}
+            competencyId={reassessedCompetencyId || biggestGap?.competencyId}
+            competencyName={reassessedCompetencyName || biggestGap?.name}
+            roleId={role?.id}
+            currentScore={reassessedAfterScore ?? pythonAfter ?? biggestGap?.current}
+            targetScore={biggestGap?.required}
+          />
         </div>
       </div>
 

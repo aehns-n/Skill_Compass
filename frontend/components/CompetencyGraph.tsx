@@ -16,7 +16,7 @@ import { usePrototype } from "@/context/PrototypeContext";
 import { api } from "@/lib/api";
 
 export function CompetencyGraph() {
-  const { pythonAfter } = usePrototype();
+  const { pythonAfter, reassessedCompetencyId, reassessedAfterScore } = usePrototype();
   const [liveNodes, setLiveNodes] = useState<GraphNode[]>(defaultNodes);
   const [liveEdges, setLiveEdges] = useState<GraphEdge[]>(defaultEdges);
   const [selectedNodeId, setSelectedNodeId] = useState<string>("python");
@@ -77,17 +77,17 @@ export function CompetencyGraph() {
 
   // Dynamic node score override if reassessed
   const nodes = liveNodes.map((n) => {
-    if ((n.id === "python" || n.label.includes("SQL") || n.label.includes("Python")) && pythonAfter != null) {
+    const isTargetReassessed =
+      (reassessedCompetencyId && n.id === reassessedCompetencyId) ||
+      ((n.id === "python" || n.label.includes("SQL") || n.label.includes("Python")) && pythonAfter != null);
+
+    const scoreVal = reassessedAfterScore ?? pythonAfter;
+
+    if (isTargetReassessed && scoreVal != null) {
       return {
         ...n,
-        score: pythonAfter,
-        status: pythonAfter >= 70 ? ("adequate" as const) : n.status,
-      };
-    }
-    if ((n.id === "data-cleaning" || n.label.includes("Orchestration") || n.label.includes("Big Data")) && pythonAfter != null && pythonAfter >= 70) {
-      return {
-        ...n,
-        status: "ready" as const,
+        score: scoreVal,
+        status: scoreVal >= 70 ? ("adequate" as const) : n.status,
       };
     }
     return n;

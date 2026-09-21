@@ -62,11 +62,14 @@ class ReassessmentService:
         client_questions = []
 
         for q in selected_qs:
+            correct_key = q.get("correct_key") or next((opt["key"] for opt in q.get("options", []) if opt.get("is_correct")), "D")
             client_options = []
             for opt in q.get("options", []):
+                is_corr = opt.get("is_correct", opt.get("key") == correct_key)
                 client_options.append({
                     "key": opt["key"],
-                    "text": opt["text"]
+                    "text": opt["text"],
+                    "is_correct": is_corr
                 })
             
             client_questions.append({
@@ -78,6 +81,8 @@ class ReassessmentService:
                 "difficulty_level": q.get("difficulty_level", "medium"),
                 "stem": q["stem"],
                 "options": client_options,
+                "correct_key": correct_key,
+                "explanation": q.get("explanation") or f"Grounded in verified {comp_name} documentation and completed modules.",
                 "estimated_seconds": 60
             })
 

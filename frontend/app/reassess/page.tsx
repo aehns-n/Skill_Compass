@@ -17,8 +17,10 @@ export default function ReassessPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [isLiveBackend, setIsLiveBackend] = useState<boolean>(false);
 
-  const competencyId = biggestGap?.competencyId || "22222222-2222-2222-2222-222222222101";
-  const competencyTitle = biggestGap?.name || "SQL & Data Modeling";
+  const rolePrimaryCompId = role?.requirements[0]?.competencyId || "22222222-2222-2222-2222-222222222201";
+  const rolePrimaryCompName = role?.requirements[0]?.benchmarkRationale || role?.title || "Core Technical Competency";
+  const competencyId = biggestGap?.competencyId || rolePrimaryCompId;
+  const competencyTitle = biggestGap?.name || rolePrimaryCompName;
 
   useEffect(() => {
     let isMounted = true;
@@ -26,16 +28,23 @@ export default function ReassessPage() {
       try {
         const res = await api.getReassessment(competencyId, "demo-user-001");
         if (isMounted && res && res.questions && res.questions.length > 0) {
-          const mapped: Question[] = res.questions.map((q) => ({
-            id: q.id,
-            competencyId: q.competency_id,
-            topic: q.topic || "Grounded Remediation",
-            prompt: q.stem,
-            options: q.options.map((o) => `${o.key}. ${o.text}`),
-            correctIndex: 0,
-            explanation: `Grounded in ${q.competency_name} documentation.`,
-            groundingLesson: `${q.competency_name} · Grounded in completed learning chunks`,
-          }));
+          const mapped: Question[] = res.questions.map((q) => {
+            const correctIdx = q.options.findIndex(
+              (o: any) => o.is_correct === true || o.key === (q as any).correct_key
+            );
+            return {
+              id: q.id,
+              competencyId: q.competency_id,
+              topic: q.topic || "Grounded Remediation",
+              prompt: q.stem,
+              options: q.options.map((o) => `${o.key}. ${o.text}`),
+              correctIndex: correctIdx >= 0 ? correctIdx : 0,
+              explanation:
+                (q as any).explanation ||
+                `Grounded in verified ${q.competency_name} documentation.`,
+              groundingLesson: `${q.competency_name} · Grounded in completed learning chunks`,
+            };
+          });
           setQuestions(mapped);
           setAssessmentId(res.assessment_id);
           setIsLiveBackend(true);
@@ -106,7 +115,7 @@ export default function ReassessPage() {
         title={`${competencyTitle} — Targeted Diagnostic`}
         subtitle={`${questions.length} questions grounded in your completed learning material and official technical documentation.`}
         onComplete={async (answers) => {
-          await submitTargeted(answers, assessmentId ?? undefined);
+          await submitTargeted(answers, assessmentId ?? undefined, competencyId);
           router.push("/reassess/result");
         }}
       />

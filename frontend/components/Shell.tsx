@@ -54,7 +54,20 @@ export function Logo({ compact = false }: { compact?: boolean }) {
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { role, learnerName, pythonAfter, diagnosticDone, reset } = usePrototype();
+  const {
+    role,
+    learnerName,
+    pythonAfter,
+    pythonBefore,
+    reassessedCompetencyName,
+    reassessedAfterScore,
+    reassessedBeforeScore,
+    reassessedRequiredScore,
+    scores,
+    biggestGap,
+    diagnosticDone,
+    reset,
+  } = usePrototype();
 
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-ink-200 bg-white lg:flex">
@@ -104,24 +117,36 @@ export function Sidebar() {
           </div>
         </div>
 
-        <div className="mt-3 rounded-lg border border-ink-200 bg-white p-2.5 text-xs shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-ink-500">Python Status:</span>
-            <span className="font-bold tabular-nums text-ink-900">
-              {pythonAfter != null ? (
-                <span className="text-emerald-700 font-bold">{pythonAfter}% (+38)</span>
-              ) : diagnosticDone ? (
-                <span className="text-red-600 font-bold">34% (Gap 41)</span>
-              ) : (
-                <span className="text-ink-400">Not assessed</span>
-              )}
-            </span>
-          </div>
-          <div className="mt-1 flex items-center justify-between text-[11px] text-ink-400">
-            <span>Benchmark:</span>
-            <span className="font-semibold text-ink-600">≥ 75% required</span>
-          </div>
-        </div>
+        {(() => {
+          const focalName = reassessedCompetencyName || biggestGap?.name || scores[0]?.name || "Core Skill";
+          const focalBefore = reassessedBeforeScore ?? pythonBefore ?? scores[0]?.current ?? 30;
+          const focalAfter = reassessedAfterScore ?? pythonAfter;
+          const focalReq = reassessedRequiredScore ?? biggestGap?.required ?? scores[0]?.required ?? 75;
+          const focalCur = focalAfter ?? (diagnosticDone ? (biggestGap?.current ?? scores[0]?.current ?? focalBefore) : null);
+          const focalDelta = focalAfter != null ? Math.max(0, focalAfter - focalBefore) : null;
+          const focalGap = focalCur != null ? Math.max(0, focalReq - focalCur) : null;
+
+          return (
+            <div className="mt-3 rounded-lg border border-ink-200 bg-white p-2.5 text-xs shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-ink-500 truncate max-w-[120px]" title={focalName}>{focalName}:</span>
+                <span className="font-bold tabular-nums text-ink-900">
+                  {focalAfter != null ? (
+                    <span className="text-emerald-700 font-bold">{focalAfter}% (+{focalDelta})</span>
+                  ) : diagnosticDone && focalCur != null ? (
+                    <span className="text-red-600 font-bold">{focalCur}% (Gap {focalGap})</span>
+                  ) : (
+                    <span className="text-ink-400">Not assessed</span>
+                  )}
+                </span>
+              </div>
+              <div className="mt-1 flex items-center justify-between text-[11px] text-ink-400">
+                <span>Benchmark:</span>
+                <span className="font-semibold text-ink-600">≥ {focalReq}% required</span>
+              </div>
+            </div>
+          );
+        })()}
 
         <div className="mt-3 flex items-center justify-between pt-1 text-[11px]">
           <Link

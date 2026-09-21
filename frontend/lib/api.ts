@@ -263,13 +263,15 @@ export interface ResourceModuleDetail {
 }
 
 export interface ScoreTimeSeriesPoint {
-  date: string;
+  date?: string;
+  timestamp?: string;
   score: number;
   competency_id: string;
   competency_name: string;
-  evidence_type: string;
-  assessment_id: string;
-  evidence_count: number;
+  evidence_type?: string;
+  source?: string;
+  assessment_id?: string;
+  evidence_count?: number;
 }
 
 export interface EffectivenessMetric {
@@ -277,13 +279,18 @@ export interface EffectivenessMetric {
   competency_name: string;
   baseline_score: number;
   current_score: number;
-  target_score: number;
-  absolute_gain: number;
-  pct_gap_closed: number;
+  target_score?: number;
+  target?: number;
+  delta_score?: number;
+  absolute_gain?: number;
+  pct_gap_closed?: number;
+  gap_closed_pct?: number;
   materials_completed: number;
-  gain_per_resource: number;
-  plateau_flag: boolean;
-  status: string;
+  gain_per_resource?: number;
+  points_gained_per_material?: number;
+  plateau_flag?: boolean;
+  is_plateaued?: boolean;
+  status?: string;
 }
 
 export interface SelfVsMeasuredItem {

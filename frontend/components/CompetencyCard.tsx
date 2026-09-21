@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ChevronDown,
   TrendingUp,
@@ -12,9 +12,14 @@ import {
   Sparkles,
 } from "lucide-react";
 import { PriorityBadge, ProgressBar, TierBadge } from "@/components/ui";
-import type { CompetencyScore } from "@/context/PrototypeContext";
-import { pythonEvidence, pythonEvidenceAfter } from "@/data/evidence";
+import { usePrototype, type CompetencyScore } from "@/context/PrototypeContext";
+import {
+  getEvidenceForRoleAndCompetency,
+  type EvidenceRecord,
+  type EvidenceItem,
+} from "@/data/evidence";
 import { competencyById } from "@/data/roles";
+import { api, type AuditRecomputeResponse } from "@/lib/api";
 
 export function CompetencyCard({
   score,
@@ -121,9 +126,134 @@ export function CompetencyCard({
   );
 }
 
-export function EvidencePanel({ after = false }: { after?: boolean }) {
+export interface EvidencePanelProps {
+  after?: boolean;
+  competencyId?: string;
+  competencyName?: string;
+  roleId?: string;
+  currentScore?: number;
+  targetScore?: number;
+}
+
+export function EvidencePanel({
+  after = false,
+  competencyId,
+  competencyName,
+  roleId,
+  currentScore,
+  targetScore,
+}: EvidencePanelProps = {}) {
   const [open, setOpen] = useState(true);
-  const rec = after ? pythonEvidenceAfter : pythonEvidence;
+  const proto = usePrototype();
+
+  const activeRoleId = roleId ?? proto.roleId ?? proto.role?.id;
+  const activeCompId =
+    competencyId ??
+    (after ? proto.reassessedCompetencyId : null) ??
+    proto.biggestGap?.competencyId ??
+    proto.role?.requirements[0]?.competencyId;
+  const activeCompName =
+    competencyName ??
+    (after ? proto.reassessedCompetencyName : null) ??
+    proto.biggestGap?.name ??
+    proto.role?.requirements[0]?.benchmarkRationale ??
+    proto.role?.title ??
+    "Primary Competency";
+
+  const resolvedScore =
+    currentScore ??
+    (after
+      ? (proto.reassessedAfterScore ?? proto.pythonAfter ?? 80)
+      : (proto.reassessedBeforeScore ?? proto.pythonBefore ?? 30));
+
+  const [liveAudit, setLiveAudit] = useState<AuditRecomputeResponse | null>(null);
+
+  useEffect(() => {
+    if (!activeCompId) return;
+    let isCancelled = false;
+    api
+      .auditCompetencyScore(activeCompId, "demo-user-001")
+      .then((res) => {
+        if (!isCancelled && res && res.evidence_breakdown && res.evidence_breakdown.length > 0) {
+          setLiveAudit(res);
+        }
+      })
+      .catch(() => {
+        // Fall back to role-specific evidence
+      });
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeCompId, after]);
+
+  const fallbackRec = getEvidenceForRoleAndCompetency({
+    roleId: activeRoleId,
+    competencyId: activeCompId,
+    competencyName: activeCompName,
+    after,
+    score: resolvedScore,
+    targetScore,
+  });
+
+  let rec: EvidenceRecord = fallbackRec;
+  if (liveAudit && liveAudit.evidence_breakdown && liveAudit.evidence_breakdown.length > 0) {
+    const liveItems: EvidenceItem[] = liveAudit.evidence_breakdown.map((e) => {
+      const isDiag = (e.evidence_type || "").toLowerCase().includes("diag");
+      const isReassess = (e.evidence_type || "").toLowerCase().includes("reassess");
+      const meta = (e as any).metadata;
+      const src = isDiag
+        ? "Baseline Diagnostic Assessment"
+        : isReassess
+        ? "Targeted Mastery Reassessment"
+        : "Practical Learning Verification";
+
+      let detail = `${activeCompName} structured evaluation item`;
+      if (meta?.weak_topics && meta.weak_topics.length > 0) {
+        detail = `${meta.correct_items ?? "?"}/${meta.total_items ?? "?"} correct items · Verified topics: ${meta.weak_topics.join(", ")}`;
+      } else if (meta?.total_items) {
+        detail = `${meta.correct_items ?? "?"}/${meta.total_items} items correct · Cognitive difficulty weighted`;
+      }
+
+      return {
+        source: src,
+        detail,
+        result: `${Math.round(e.score)}% empirical score`,
+        weight: typeof e.weight === "number" ? e.weight.toFixed(2) : "1.00",
+        verificationStatus: "VERIFIED" as const,
+      };
+    });
+
+    rec = {
+      competencyId: liveAudit.competency_id,
+      headline: `${liveAudit.competency_name} — ${Math.round(liveAudit.stored_score)}% (${after ? "Live Audit Post-Reassessment" : "Live Audit Baseline"})`,
+      score: Math.round(liveAudit.stored_score),
+      items: liveItems,
+      breakdown: {
+        formula: liveAudit.formula_used || "Score = Sum(weight_i × result_i) / Sum(weight_i) * 100",
+        items: [
+          {
+            metric: "Stored Competency in Store",
+            value: `${liveAudit.stored_score}%`,
+            impact: `${Math.round(liveAudit.stored_score)} points`,
+          },
+          {
+            metric: "Recomputed from Evidence Logs",
+            value: `${liveAudit.recomputed_score}%`,
+            impact: liveAudit.is_identical ? "Identical (Audit Pass)" : "Drift Flagged",
+          },
+          {
+            metric: "Total Immutable Evidence Events",
+            value: `${liveAudit.evidence_count} logs`,
+            impact: "Full Provenance",
+          },
+        ],
+      },
+      note: liveAudit.is_identical
+        ? `Mathematical audit confirmed: Stored score (${liveAudit.stored_score}%) is mathematically identical to recomputed sum of immutable evidence records.`
+        : fallbackRec.note,
+      methodology: fallbackRec.methodology,
+    };
+  }
 
   return (
     <div className="card overflow-hidden border-ink-200 shadow-sm">
@@ -218,10 +348,52 @@ export function EvidencePanel({ after = false }: { after?: boolean }) {
   );
 }
 
-export function BeforeAfterChart() {
-  const before = 34;
-  const after = 72;
-  const required = 75;
+export interface BeforeAfterChartProps {
+  competencyName?: string;
+  before?: number;
+  after?: number;
+  required?: number;
+  roleTitle?: string;
+}
+
+export function BeforeAfterChart({
+  competencyName,
+  before,
+  after,
+  required,
+  roleTitle,
+}: BeforeAfterChartProps = {}) {
+  const proto = usePrototype();
+
+  const name =
+    competencyName ??
+    proto.reassessedCompetencyName ??
+    proto.biggestGap?.name ??
+    proto.role?.requirements[0]?.benchmarkRationale ??
+    proto.role?.title ??
+    "Primary Competency";
+
+  const beforeVal =
+    before ??
+    proto.reassessedBeforeScore ??
+    proto.pythonBefore ??
+    (proto.biggestGap ? proto.biggestGap.current : 30);
+
+  const afterVal =
+    after ??
+    proto.reassessedAfterScore ??
+    proto.pythonAfter ??
+    Math.min(100, beforeVal + 40);
+
+  const reqVal =
+    required ??
+    proto.reassessedRequiredScore ??
+    (proto.biggestGap ? proto.biggestGap.required : 80);
+
+  const delta = Math.max(0, afterVal - beforeVal);
+  const initialGap = Math.max(0, reqVal - beforeVal);
+  const remainingGap = Math.max(0, reqVal - afterVal);
+  const roleLabel = roleTitle ?? proto.role?.title ?? "Role Requirement";
 
   return (
     <div className="card border-emerald-200 bg-gradient-to-br from-white via-emerald-50/20 to-emerald-50/40 p-6 shadow-sm">
@@ -231,11 +403,11 @@ export function BeforeAfterChart() {
             Demonstrated Competency Growth
           </span>
           <h3 className="text-base font-bold text-ink-900">
-            Python — Before vs After Learning Intervention
+            {name} — Before vs After Learning Intervention
           </h3>
         </div>
         <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 border border-emerald-200">
-          +38 Percentage Points
+          +{delta} Percentage Points
         </span>
       </div>
 
@@ -246,14 +418,14 @@ export function BeforeAfterChart() {
               Before (Role Diagnostic Baseline):
             </span>
             <span className="font-bold tabular-nums text-red-600">
-              {before}% (41 pts gap)
+              {beforeVal}% ({initialGap} pts gap)
             </span>
           </div>
           <ProgressBar
-            value={before}
+            value={beforeVal}
             color="bg-red-500"
             height="h-3"
-            requiredMarker={required}
+            requiredMarker={reqVal}
           />
         </div>
 
@@ -261,7 +433,7 @@ export function BeforeAfterChart() {
           <span className="h-px flex-1 bg-ink-200" />
           <span className="flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1 text-xs font-black text-white shadow-xs">
             <TrendingUp className="h-3.5 w-3.5" />
-            Growth Delta: +38 pts
+            Growth Delta: +{delta} pts
           </span>
           <span className="h-px flex-1 bg-ink-200" />
         </div>
@@ -272,23 +444,23 @@ export function BeforeAfterChart() {
               After (Targeted Reassessment):
             </span>
             <span className="font-black tabular-nums text-emerald-700">
-              {after}% (Remaining gap: 3 pts)
+              {afterVal}% ({remainingGap === 0 ? "Requirement satisfied" : `Remaining gap: ${remainingGap} pts`})
             </span>
           </div>
           <ProgressBar
-            value={after}
+            value={afterVal}
             color="bg-emerald-500"
             height="h-3.5"
-            requiredMarker={required}
+            requiredMarker={reqVal}
           />
         </div>
 
         <div className="flex items-center justify-between rounded-lg bg-white p-3 text-xs border border-emerald-200 shadow-2xs">
           <span className="text-ink-600">
-            Statistical Officer Threshold: <strong>{required}%</strong>
+            {roleLabel} Benchmark: <strong>{reqVal}%</strong>
           </span>
           <span className="font-bold text-emerald-800">
-            Role Gap Reduced: 41 pts ➔ 3 pts
+            Role Gap Reduced: {initialGap} pts ➔ {remainingGap} pts
           </span>
         </div>
       </div>

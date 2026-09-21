@@ -32,16 +32,23 @@ export default function DiagnosticAssessmentPage() {
       try {
         const res = await api.getBaselineAssessment("demo-user-001", role?.id);
         if (isMounted && res && res.questions && res.questions.length > 0) {
-          const mapped: Question[] = res.questions.map((q) => ({
-            id: q.id,
-            competencyId: q.competency_id,
-            topic: q.topic || "Core Concept",
-            prompt: q.stem,
-            options: q.options.map((o) => `${o.key}. ${o.text}`),
-            correctIndex: 0,
-            explanation: `Authoritative standard: ${q.competency_name} (${q.topic})`,
-            groundingLesson: `${q.competency_name} · ${q.topic} (Difficulty: ${q.difficulty_level})`,
-          }));
+          const mapped: Question[] = res.questions.map((q) => {
+            const correctIdx = q.options.findIndex(
+              (o: any) => o.is_correct === true || o.key === (q as any).correct_key
+            );
+            return {
+              id: q.id,
+              competencyId: q.competency_id,
+              topic: q.topic || "Core Concept",
+              prompt: q.stem,
+              options: q.options.map((o) => `${o.key}. ${o.text}`),
+              correctIndex: correctIdx >= 0 ? correctIdx : 0,
+              explanation:
+                (q as any).explanation ||
+                `Authoritative standard: ${q.competency_name} (${q.topic})`,
+              groundingLesson: `${q.competency_name} · ${q.topic} (Difficulty: ${q.difficulty_level})`,
+            };
+          });
           setQuestions(mapped);
           setAssessmentId(res.assessment_id);
           setActiveAssessmentId(res.assessment_id);

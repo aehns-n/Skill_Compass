@@ -49,6 +49,7 @@ class ProfileResponse(BaseModel):
 class QuestionOptionClient(BaseModel):
     key: str # A, B, C, D
     text: str
+    is_correct: Optional[bool] = None
 
 class AssessmentQuestionClient(BaseModel):
     id: str
@@ -59,6 +60,8 @@ class AssessmentQuestionClient(BaseModel):
     difficulty_level: str
     stem: str
     options: List[QuestionOptionClient]
+    correct_key: Optional[str] = None
+    explanation: Optional[str] = None
     estimated_seconds: int = 60
 
 class AssessmentCreateResponse(BaseModel):

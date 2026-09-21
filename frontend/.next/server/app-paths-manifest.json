@@ -1,8 +1,9 @@
 {
-  "/dashboard/page": "app/dashboard/page.js",
   "/learning/page": "app/learning/page.js",
-  "/learn/module/page": "app/learn/module/page.js",
-  "/reassess/result/page": "app/reassess/result/page.js",
   "/reassess/page": "app/reassess/page.js",
-  "/gaps/page": "app/gaps/page.js"
+  "/dashboard/page": "app/dashboard/page.js",
+  "/reassess/result/page": "app/reassess/result/page.js",
+  "/graph/page": "app/graph/page.js",
+  "/gaps/page": "app/gaps/page.js",
+  "/learn/module/page": "app/learn/module/page.js"
 }
