@@ -10,21 +10,39 @@ import uuid
 import re
 from typing import List, Dict, Any, Optional
 
-from app.services.vectorization.vector_store import VectorStore
+try:
+    from app.services.vectorization.vector_store import VectorStore
+except ImportError:
+    VectorStore = Any
+
 from app.services.question_generator.validator import QuestionValidator
-from ai.prompts.question_generation_prompts import (
-    SYSTEM_PROMPT,
-    RAG_USER_PROMPT_TEMPLATE,
-    REPROMPT_REPAIR_TEMPLATE
-)
+
+try:
+    from ai.prompts.question_generation_prompts import (
+        SYSTEM_PROMPT,
+        RAG_USER_PROMPT_TEMPLATE,
+        REPROMPT_REPAIR_TEMPLATE
+    )
+except ImportError:
+    import sys
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent.parent.parent.parent
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    from ai.prompts.question_generation_prompts import (
+        SYSTEM_PROMPT,
+        RAG_USER_PROMPT_TEMPLATE,
+        REPROMPT_REPAIR_TEMPLATE
+    )
 
 class GroundedQuestionGenerator:
     """Generates grounded diagnostic MCQs using RAG and vector retrieved materials."""
 
-    def __init__(self, vector_store: VectorStore, validator: Optional[QuestionValidator] = None):
+    def __init__(self, vector_store: Optional[Any] = None, validator: Optional[QuestionValidator] = None):
         self.vector_store = vector_store
         self.validator = validator or QuestionValidator()
         self.api_key = os.getenv("OPENAI_API_KEY")
+
 
     def _call_llm_json(self, system_prompt: str, user_prompt: str) -> Optional[Dict[str, Any]]:
         """Calls LLM with structured JSON output if API key is present."""

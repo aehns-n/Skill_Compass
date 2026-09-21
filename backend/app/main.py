@@ -1,18 +1,20 @@
 """
 SkillCompass — FastAPI Application Entrypoint
-Mounts pipeline routers, provides health check and interactive Swagger documentation.
+Mounts pipeline & loop routers, provides health check and interactive Swagger documentation.
 """
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.pipeline_router import router as pipeline_router
+from app.api.loop_router import router as loop_router
 
 app = FastAPI(
-    title="SkillCompass API — Automated Ingestion & Question Generation Pipeline",
-    description="Automated material ingestion, semantic vectorization, grounded RAG question generation, and skill-gap assessment integration.",
-    version="1.0.0"
+    title="SkillCompass API — Competency Intelligence & Adaptive Learning Engine",
+    description="Deterministic skill-gap measurement, DAG prerequisite gating, grounded RAG question generation, and full loop orchestration (SIH26101 / MoSPI).",
+    version="2.0.0"
 )
 
+# CORS middleware configuration for frontend integration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,13 +23,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount Routers
+app.include_router(loop_router)
 app.include_router(pipeline_router)
 
 @app.get("/")
 def root():
     return {
         "platform": "SkillCompass",
-        "service": "Automated Pipeline & Question Generation Engine",
+        "version": "2.0.0",
+        "service": "Competency Intelligence & Adaptive Learning Engine",
         "docs_url": "/docs",
         "health": "healthy"
     }

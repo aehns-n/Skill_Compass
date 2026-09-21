@@ -177,6 +177,7 @@ def generate_curated_resources_dataset() -> List[Dict[str, Any]]:
 
             resources.append({
                 "id": r_id,
+                "resource_id": r_id,
                 "competency_id": comp_id,
                 "role_id": comp["role_id"],
                 "title": f"{comp_name} — {subtopic} Core Standard Guide",
@@ -195,3 +196,7 @@ def generate_curated_resources_dataset() -> List[Dict[str, Any]]:
             res_counter += 1
 
     return resources
+
+def get_all_curated_resources() -> List[Dict[str, Any]]:
+    return generate_curated_resources_dataset()
+
