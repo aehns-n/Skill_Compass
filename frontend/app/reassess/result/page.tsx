@@ -13,9 +13,16 @@ import {
 } from "lucide-react";
 import { Shell } from "@/components/Shell";
 import { BeforeAfterChart, EvidencePanel } from "@/components/CompetencyCard";
+import { usePrototype } from "@/context/PrototypeContext";
 
 export default function ReassessmentResultPage() {
+  const { pythonBefore, pythonAfter, biggestGap } = usePrototype();
   const [phase, setPhase] = useState<"loading" | "result">("loading");
+
+  const beforeScore = pythonBefore || 34;
+  const afterScore = pythonAfter || 72;
+  const delta = afterScore - beforeScore;
+  const compName = biggestGap?.name || "SQL & Data Modeling";
 
   useEffect(() => {
     const t = setTimeout(() => setPhase("result"), 1200);

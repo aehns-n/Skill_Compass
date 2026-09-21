@@ -1,4 +1,4 @@
-// File: E:\Projects\Skill_Compass\frontend\app\gaps\page.tsx
+// File: E:\PROJECT\Skill_Compass\frontend\app\gaps\page.tsx
 import * as entry from '../../../../app/gaps/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

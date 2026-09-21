@@ -36,6 +36,7 @@ export function DemoNavigator() {
     loadDemoBaseline,
     loadPostReassessmentState,
     reset,
+    isConnected,
   } = usePrototype();
 
   // Hide on landing page to keep it clean, or keep minimal
@@ -44,18 +45,26 @@ export function DemoNavigator() {
   return (
     <div className="sticky top-0 z-50 border-b border-indigo-200 bg-gradient-to-r from-indigo-900 via-brand-900 to-slate-900 px-4 py-2 text-white shadow-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-        {/* Left: Hackathon Demo Identifier */}
+        {/* Left: Hackathon Demo Identifier & Live Backend Status */}
         <div className="flex items-center gap-2">
           <span className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-400 text-slate-900">
             <Zap className="h-3.5 w-3.5 fill-current" />
           </span>
           <div className="flex items-center gap-2 text-xs">
             <span className="font-bold tracking-wide text-amber-300 uppercase">
-              Hackathon Demo Bar
+              SkillCompass Demo Bar
             </span>
-            <span className="hidden text-slate-300 md:inline">
-              | Closed Loop: Statistical Officer Scenario
-            </span>
+            {isConnected ? (
+              <span className="flex items-center gap-1 rounded bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300 ring-1 ring-emerald-400/40">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Live Backend & DB Connected
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 rounded bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-300 ring-1 ring-amber-400/40">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                Backend Connecting…
+              </span>
+            )}
           </div>
         </div>
 

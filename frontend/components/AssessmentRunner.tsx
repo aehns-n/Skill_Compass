@@ -59,15 +59,16 @@ export function AssessmentRunner({
   const autoFillDemo = () => {
     const demoAnswers: Record<string, number> = {};
     questions.forEach((question, idx) => {
+      const cIdx = question.correctIndex ?? 0;
       if (targeted) {
         // Targeted reassessment: 5/6 correct
-        demoAnswers[question.id] = idx === 4 ? (question.correctIndex + 1) % 4 : question.correctIndex;
+        demoAnswers[question.id] = idx === 4 ? (cIdx + 1) % 4 : cIdx;
       } else {
-        // Diagnostic: Python questions gets 4/12 overall, exact demo baseline
-        if (question.competencyId === "python") {
-          demoAnswers[question.id] = idx < 2 ? question.correctIndex : (question.correctIndex + 1) % 4;
+        // Diagnostic: lower score on primary gap, exact demo baseline
+        if (question.competencyId === "python" || question.competencyId.endsWith("101")) {
+          demoAnswers[question.id] = idx < 2 ? cIdx : (cIdx + 1) % 4;
         } else {
-          demoAnswers[question.id] = question.correctIndex;
+          demoAnswers[question.id] = cIdx;
         }
       }
     });

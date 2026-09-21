@@ -72,9 +72,249 @@ export const competencies: Competency[] = [
     category: "Professional",
     description: "Drafting official bulletins, metadata documentation, and executive summaries for policymakers.",
   },
+  // --- Official Database Competencies (17) ---
+  {
+    id: "22222222-2222-2222-2222-222222222101",
+    name: "SQL & Data Modeling",
+    category: "Technical",
+    description: "Relational schemas, normalization, analytical SQL, window functions, and Common Table Expressions (CTEs).",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222102",
+    name: "Python / Scala",
+    category: "Technical",
+    description: "Data manipulation libraries such as Pandas and PySpark, object-oriented programming, and production scripting.",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222103",
+    name: "Distributed Computing & Big Data",
+    category: "Technical",
+    description: "Apache Spark, Hadoop ecosystem, distributed memory execution, and MapReduce processing concepts.",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222104",
+    name: "Data Pipelining & Orchestration",
+    category: "Technical",
+    description: "Workflow scheduling using Apache Airflow, Prefect, robust ETL/ELT pipeline design, and DAG management.",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222105",
+    name: "Data Warehousing & Cloud",
+    category: "Technical",
+    description: "Cloud analytical warehouses (Snowflake, BigQuery, AWS Redshift) and modern data lakehouse architectures.",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222106",
+    name: "Streaming Data Processing",
+    category: "Technical",
+    description: "Real-time streaming ingestion pipelines, event brokers, Apache Kafka, and Apache Flink.",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222201",
+    name: "Network & OS Fundamentals",
+    category: "Technical",
+    description: "TCP/IP stack, OSI model, Linux and Windows system administration, core ports, and security protocols.",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222202",
+    name: "Threat Detection & SIEM",
+    category: "Domain",
+    description: "Security Information and Event Management (SIEM), centralized log analysis, Splunk, Elastic Security, and SOC monitoring.",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222203",
+    name: "Vulnerability Assessment & Pen Testing",
+    category: "Domain",
+    description: "Network scanning with Nmap, packet analysis via Wireshark, web security with Burp Suite, OWASP Top 10, and penetration testing.",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222204",
+    name: "Identity & Access Management (IAM)",
+    category: "Domain",
+    description: "Zero Trust security architecture, Role-Based Access Control (RBAC), Active Directory, OAuth 2.0, and SAML authentication.",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222205",
+    name: "Incident Response & Digital Forensics",
+    category: "Domain",
+    description: "Incident triage, malware analysis, containment strategies, forensic chain of custody, and memory inspection.",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222301",
+    name: "Routing & Switching Fundamentals",
+    category: "Technical",
+    description: "VLAN configuration, Spanning Tree Protocol (STP), IP subnetting, IPv4/IPv6 dual stack, OSPF, and BGP routing protocols.",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222302",
+    name: "Network Infrastructure & Hardware",
+    category: "Technical",
+    description: "Physical and virtual enterprise network hardware: chassis routers, multilayer switches, and perimeter firewalls.",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222303",
+    name: "Network Automation & Scripting",
+    category: "Technical",
+    description: "Automating network provisioning and telemetry using Python, Netmiko, NAPALM, Ansible, and device REST APIs.",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222304",
+    name: "Network Security & Firewalls",
+    category: "Technical",
+    description: "Virtual Private Networks (IPsec and SSL VPNs), Access Control Lists (ACLs), stateful inspection, and IDS/IPS tuning.",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222305",
+    name: "Cloud Networking & SD-WAN",
+    category: "Technical",
+    description: "Cloud VPC architectures (AWS VPC, Azure Virtual Networks), transit gateways, and Software-Defined WAN (SD-WAN).",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222306",
+    name: "Network Monitoring & Troubleshooting",
+    category: "Technical",
+    description: "Deep packet analysis with Wireshark, SNMP telemetry, Nagios, latency optimization, and jitter diagnosis.",
+  },
 ];
 
 export const roles: Role[] = [
+  // --- Official Database Roles ---
+  {
+    id: "11111111-1111-1111-1111-111111111101",
+    title: "Data Engineer",
+    department: "Enterprise Data Architecture & Engineering",
+    description:
+      "Designs, builds, and operationalizes scalable data pipelines, distributed storage, and analytics warehouses.",
+    summary:
+      "High-throughput data engineering role requiring mastery of SQL, Spark, Airflow orchestration, and real-time streaming.",
+    requirements: [
+      {
+        competencyId: "22222222-2222-2222-2222-222222222101",
+        required: 85,
+        priority: "HIGH",
+        benchmarkRationale: "Relational schemas, normalization, analytical SQL, window functions, and CTEs.",
+      },
+      {
+        competencyId: "22222222-2222-2222-2222-222222222102",
+        required: 80,
+        priority: "HIGH",
+        benchmarkRationale: "Data manipulation with Pandas, PySpark, OOP, and production pipeline scripting.",
+      },
+      {
+        competencyId: "22222222-2222-2222-2222-222222222103",
+        required: 75,
+        priority: "MEDIUM",
+        benchmarkRationale: "Apache Spark distributed memory execution, partition tuning, and MapReduce.",
+      },
+      {
+        competencyId: "22222222-2222-2222-2222-222222222104",
+        required: 80,
+        priority: "MEDIUM",
+        benchmarkRationale: "Workflow scheduling with Apache Airflow, DAG design, and robust ETL/ELT.",
+      },
+      {
+        competencyId: "22222222-2222-2222-2222-222222222105",
+        required: 75,
+        priority: "LOW",
+        benchmarkRationale: "Cloud analytical data warehouses (Snowflake, BigQuery) and modern lakehouses.",
+      },
+      {
+        competencyId: "22222222-2222-2222-2222-222222222106",
+        required: 70,
+        priority: "LOW",
+        benchmarkRationale: "Real-time streaming ingestion pipelines with Apache Kafka and Flink.",
+      },
+    ],
+  },
+  {
+    id: "11111111-1111-1111-1111-111111111102",
+    title: "Cybersecurity Analyst / Engineer",
+    department: "Information Security & SOC Operations",
+    description:
+      "Protects digital infrastructure through threat detection, vulnerability analysis, identity management, and incident response.",
+    summary:
+      "Operational security role focusing on SIEM telemetry, zero trust identity, penetration testing, and digital forensics.",
+    requirements: [
+      {
+        competencyId: "22222222-2222-2222-2222-222222222201",
+        required: 85,
+        priority: "HIGH",
+        benchmarkRationale: "TCP/IP stack, Linux/Windows administration, core ports, and protocols.",
+      },
+      {
+        competencyId: "22222222-2222-2222-2222-222222222202",
+        required: 80,
+        priority: "HIGH",
+        benchmarkRationale: "Centralized SIEM log analysis, Splunk, Elastic Security, and SOC alerts.",
+      },
+      {
+        competencyId: "22222222-2222-2222-2222-222222222203",
+        required: 75,
+        priority: "MEDIUM",
+        benchmarkRationale: "Nmap vulnerability scanning, Wireshark, Burp Suite, and OWASP Top 10.",
+      },
+      {
+        competencyId: "22222222-2222-2222-2222-222222222204",
+        required: 75,
+        priority: "MEDIUM",
+        benchmarkRationale: "Zero Trust architecture, RBAC, Active Directory, OAuth 2.0, and SAML.",
+      },
+      {
+        competencyId: "22222222-2222-2222-2222-222222222205",
+        required: 70,
+        priority: "LOW",
+        benchmarkRationale: "Incident triage, malware containment, chain of custody, and memory forensics.",
+      },
+    ],
+  },
+  {
+    id: "11111111-1111-1111-1111-111111111103",
+    title: "Network Engineer",
+    department: "Enterprise Network Infrastructure",
+    description:
+      "Architects, secures, and maintains mission-critical enterprise network routing, switching, automation, and wireless systems.",
+    summary:
+      "Core networking role requiring deep protocol knowledge in OSPF/BGP, Python Netmiko automation, and SD-WAN.",
+    requirements: [
+      {
+        competencyId: "22222222-2222-2222-2222-222222222301",
+        required: 85,
+        priority: "HIGH",
+        benchmarkRationale: "VLAN, STP, IPv4/IPv6 dual stack, OSPF, and BGP routing.",
+      },
+      {
+        competencyId: "22222222-2222-2222-2222-222222222302",
+        required: 80,
+        priority: "HIGH",
+        benchmarkRationale: "Chassis routers, multilayer switches, and perimeter firewalls.",
+      },
+      {
+        competencyId: "22222222-2222-2222-2222-222222222303",
+        required: 70,
+        priority: "MEDIUM",
+        benchmarkRationale: "Network automation using Python, Netmiko, Ansible, and REST APIs.",
+      },
+      {
+        competencyId: "22222222-2222-2222-2222-222222222304",
+        required: 80,
+        priority: "MEDIUM",
+        benchmarkRationale: "IPsec/SSL VPNs, Access Control Lists (ACLs), and IDS/IPS tuning.",
+      },
+      {
+        competencyId: "22222222-2222-2222-2222-222222222305",
+        required: 75,
+        priority: "LOW",
+        benchmarkRationale: "Cloud VPC architectures, transit gateways, and SD-WAN.",
+      },
+      {
+        competencyId: "22222222-2222-2222-2222-222222222306",
+        required: 75,
+        priority: "LOW",
+        benchmarkRationale: "Packet analysis with Wireshark, SNMP telemetry, and latency diagnostics.",
+      },
+    ],
+  },
+  // --- Legacy Prototype Roles for Demo Continuity ---
   {
     id: "statistical-officer",
     title: "Statistical Officer",

@@ -71,12 +71,13 @@ export default function DiagnosticResultsPage() {
                       Primary Role-Relevant Skill Gap Detected
                     </p>
                     <p className="text-base font-bold text-ink-900">
-                      Python: <span className="text-red-600 tabular-nums">34%</span>{" "}
-                      (Required: <span className="font-semibold text-ink-800">75%</span> ·{" "}
-                      <strong className="text-red-700">41 points gap</strong>)
+                      {biggestGap.name ?? competencyById(biggestGap.competencyId)?.name ?? biggestGap.competencyId}:{" "}
+                      <span className="text-red-600 tabular-nums">{biggestGap.current}%</span>{" "}
+                      (Required: <span className="font-semibold text-ink-800">{biggestGap.required}%</span> ·{" "}
+                      <strong className="text-red-700">{biggestGap.gap} points gap</strong>)
                     </p>
                     <p className="mt-1 text-xs text-ink-600">
-                      Python serves as an unblockable foundational prerequisite for Data Cleaning and Advanced Statistical Analysis.
+                      This competency represents the primary bottleneck preventing advancement along your role's prerequisite DAG.
                     </p>
                   </div>
                 </div>
@@ -88,25 +89,22 @@ export default function DiagnosticResultsPage() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                 {scores.map((s) => {
                   const comp = competencyById(s.competencyId);
-                  const isPython = s.competencyId === "python";
+                  const isTopGap = s.competencyId === biggestGap?.competencyId;
+                  const name = s.name ?? comp?.name ?? s.competencyId;
                   return (
                     <div
                       key={s.competencyId}
                       className={`rounded-lg p-3 border ${
-                        isPython
+                        isTopGap
                           ? "bg-red-50/80 border-red-200 text-red-950"
                           : "bg-white border-ink-200 text-ink-900"
                       }`}
                     >
-                      <p className="text-[11px] font-semibold truncate text-ink-500">
-                        {comp?.name ?? s.competencyId}
-                      </p>
-                      <p className="mt-1 text-2xl font-black tabular-nums">
+                      <p className="text-[11px] font-bold truncate text-ink-600">{name}</p>
+                      <p className={`mt-1 text-xl font-black ${isTopGap ? "text-red-700" : "text-ink-900"}`}>
                         {s.current}%
                       </p>
-                      <p className="text-[10px] text-ink-500">
-                        req: {s.required}%
-                      </p>
+                      <p className="text-[10px] text-ink-400">Target: {s.required}%</p>
                     </div>
                   );
                 })}

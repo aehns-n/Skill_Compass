@@ -181,21 +181,26 @@ When deploying in enterprise production, engineers must ensure consistent idempo
                 role_id=res.get("role_id")
             )
             for ch in chunks:
-                self.resource_chunks[ch.chunk_id] = ch.to_dict()
+                self.resource_chunks[ch["chunk_id"]] = ch
 
             # Generate validated MCQs grounded in resource chunks
-            generated_qs = generator.generate_questions_for_chunk(
-                chunk_text=chunks[0].chunk_text if chunks else text_body,
-                competency_name=self.competencies.get(res["competency_id"], {}).get("name", "Competency"),
-                topic_subtopic=res.get("topic_subtopic", "Core"),
-                resource_id=rid,
-                role_id=res.get("role_id"),
-                count=2
+            comp_name = self.competencies.get(res["competency_id"], {}).get("name", "Competency")
+            top_sub = res.get("topic_subtopic", "Core")
+            mcq = generator._synthesize_deterministic_grounded_mcq(
+                competency_name=comp_name,
+                topic_subtopic=top_sub,
+                difficulty_level="medium",
+                difficulty_score=3,
+                context_chunks=chunks if chunks else [{"chunk_text": text_body, "source_title": res['title'], "source_url": res['url']}]
             )
-            for q in generated_qs:
-                val_report = validator.validate_question(q, context_chunks=[chunks[0].chunk_text if chunks else text_body])
-                if val_report.passed:
-                    self.questions[q.question_id] = q.to_dict()
+            mcq["id"] = mcq.get("id") or str(uuid.uuid4())
+            mcq["question_id"] = mcq["id"]
+            mcq["competency_id"] = res["competency_id"]
+            mcq["role_id"] = res.get("role_id")
+            mcq["resource_id"] = rid
+            val_report = validator.validate_single_question(mcq, context_chunks=chunks if chunks else [{"chunk_text": text_body}])
+            if val_report.get("passed", False):
+                self.questions[mcq["id"]] = mcq
 
     # Accessors
     def get_role(self, role_id: str) -> Optional[Dict[str, Any]]:

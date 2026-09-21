@@ -1,4 +1,4 @@
-// File: E:\Projects\Skill_Compass\frontend\app\learning\page.tsx
+// File: E:\PROJECT\Skill_Compass\frontend\app\learning\page.tsx
 import * as entry from '../../../../app/learning/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

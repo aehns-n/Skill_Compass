@@ -61,7 +61,7 @@ class DiagnoseService:
                     })
                 
                 client_questions.append({
-                    "id": q["question_id"],
+                    "id": q.get("question_id") or q.get("id"),
                     "competency_id": cid,
                     "competency_name": comp_name,
                     "topic": q.get("topic_subtopic", "Core"),

@@ -1,10 +1,5 @@
 {
   "pages": {
-    "/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/page.js"
-    ],
     "/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -16,10 +11,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/onboarding/page.js"
     ],
-    "/reassess/result/page": [
+    "/learning/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/reassess/result/page.js"
+      "static/chunks/app/learning/page.js"
     ],
     "/assessment/page": [
       "static/chunks/webpack.js",
@@ -36,16 +31,6 @@
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/page.js"
     ],
-    "/gaps/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/gaps/page.js"
-    ],
-    "/learning/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/learning/page.js"
-    ],
     "/learn/module/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -56,15 +41,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/reassess/page.js"
     ],
-    "/graph/page": [
+    "/reassess/result/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/graph/page.js"
+      "static/chunks/app/reassess/result/page.js"
     ],
-    "/progress/page": [
+    "/gaps/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/progress/page.js"
+      "static/chunks/app/gaps/page.js"
     ]
   }
 }

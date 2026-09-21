@@ -3,9 +3,10 @@ export interface Question {
   competencyId: string;
   topic: string;
   prompt: string;
+  stem?: string;
   options: string[];
-  correctIndex: number;
-  explanation: string;
+  correctIndex?: number;
+  explanation?: string;
   groundingLesson?: string;
   difficulty?: "Foundational" | "Intermediate" | "Advanced";
 }

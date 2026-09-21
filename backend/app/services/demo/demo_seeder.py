@@ -36,8 +36,7 @@ class DemoSeeder:
 
         # Clear any prior evidence for clean demo state
         store.evidence_logs = [e for e in store.evidence_logs if e["user_id"] != user_id]
-        if user_id in store.learning_progress:
-            store.learning_progress[user_id] = {}
+        store.learning_progress[user_id] = {}
 
         now = datetime.datetime.now(datetime.timezone.utc)
         baseline_time = (now - datetime.timedelta(days=7)).isoformat()

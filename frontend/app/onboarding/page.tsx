@@ -2,27 +2,53 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowRight, Check, Sparkles, Building2, User, Award, ShieldAlert } from "lucide-react";
+import { ArrowRight, Check, Sparkles, Building2, User, Award, Sliders, Target } from "lucide-react";
 import { Shell } from "@/components/Shell";
-import { roles, competencyById, PROTOTYPE_NOTICE } from "@/data/roles";
+import { competencyById, PROTOTYPE_NOTICE } from "@/data/roles";
 import { usePrototype } from "@/context/PrototypeContext";
 import { PriorityBadge } from "@/components/ui";
+import { api } from "@/lib/api";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { learnerName, currentRole, experience, selectRole, setLearner } = usePrototype();
-  const [selected, setSelected] = useState<string>("statistical-officer");
-  const [name, setName] = useState(learnerName);
-  const [role_, setRole_] = useState(currentRole);
-  const [exp, setExp] = useState(experience);
+  const { learnerName, currentRole, experience, selectRole, setLearner, availableRoles, roleId, isConnected, resetDiagnostic } = usePrototype();
+  const [selected, setSelected] = useState<string>(roleId || "11111111-1111-1111-1111-111111111101");
+  const [name, setName] = useState(learnerName || "A. Sharma");
+  const [role_, setRole_] = useState(currentRole || "Junior Developer");
+  const [exp, setExp] = useState(experience || "1-3 years");
+  const [goals, setGoals] = useState("Advance into enterprise architecture and master distributed pipelines");
+  const [selfRatings, setSelfRatings] = useState<Record<string, number>>({});
+  const [submitting, setSubmitting] = useState(false);
 
-  const chosen = roles.find((r) => r.id === selected) ?? roles[0];
+  const chosen = availableRoles.find((r) => r.id === selected) ?? availableRoles[0];
 
-  const start = () => {
+  const handleRatingChange = (cid: string, val: number) => {
+    setSelfRatings((prev) => ({ ...prev, [cid]: val }));
+  };
+
+  const start = async () => {
     if (!selected) return;
-    setLearner(name, role_, exp);
-    selectRole(selected);
-    router.push("/assessment");
+    setSubmitting(true);
+    try {
+      await api.createOrUpdateProfile({
+        user_id: "demo-user-001",
+        name,
+        role_id: selected,
+        experience_level: exp,
+        goals,
+        self_ratings: selfRatings,
+      });
+      await setLearner(name, role_, exp);
+      await selectRole(selected);
+      resetDiagnostic();
+      router.push("/assessment");
+    } catch (err) {
+      console.warn("Could not submit profile to backend:", err);
+      resetDiagnostic();
+      router.push("/assessment");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -31,12 +57,20 @@ export default function OnboardingPage() {
         <div className="space-y-6">
           {/* Learner Profile Details */}
           <div className="card p-6 border-ink-200 bg-white shadow-card">
-            <div className="flex items-center gap-2 border-b border-ink-100 pb-3">
-              <User className="h-4 w-4 text-brand-600" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-ink-500">
-                Official Learner Credentials
-              </h2>
+            <div className="flex items-center justify-between border-b border-ink-100 pb-3">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-brand-600" />
+                <h2 className="text-xs font-bold uppercase tracking-wider text-ink-500">
+                  Official Learner Credentials & Career Goals
+                </h2>
+              </div>
+              {isConnected && (
+                <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                  Backend DB Synced
+                </span>
+              )}
             </div>
+
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
               <label className="block">
                 <span className="text-xs font-semibold text-ink-700">Official Name</span>
@@ -53,16 +87,32 @@ export default function OnboardingPage() {
                   value={role_}
                   onChange={(e) => setRole_(e.target.value)}
                   className="mt-1.5 w-full rounded-lg border border-ink-300 bg-ink-50/50 px-3 py-2 text-sm font-medium text-ink-900 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
-                  placeholder="e.g. Junior Statistical Assistant"
+                  placeholder="e.g. Junior Developer"
                 />
               </label>
               <label className="block">
-                <span className="text-xs font-semibold text-ink-700">Experience in Cadre</span>
-                <input
+                <span className="text-xs font-semibold text-ink-700">Experience in Role</span>
+                <select
                   value={exp}
                   onChange={(e) => setExp(e.target.value)}
                   className="mt-1.5 w-full rounded-lg border border-ink-300 bg-ink-50/50 px-3 py-2 text-sm font-medium text-ink-900 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
-                  placeholder="e.g. 3 years"
+                >
+                  <option value="Entry-level">Entry-level (&lt; 1 yr)</option>
+                  <option value="1-3 years">1-3 years</option>
+                  <option value="3-5 years">3-5 years</option>
+                  <option value="Senior (5+ years)">Senior (5+ years)</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="mt-4">
+              <label className="block">
+                <span className="text-xs font-semibold text-ink-700">Primary Career & Upskilling Goals</span>
+                <input
+                  value={goals}
+                  onChange={(e) => setGoals(e.target.value)}
+                  className="mt-1.5 w-full rounded-lg border border-ink-300 bg-ink-50/50 px-3 py-2 text-sm font-medium text-ink-900 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  placeholder="e.g. Master distributed data pipelines and cloud architectures"
                 />
               </label>
             </div>
@@ -80,14 +130,14 @@ export default function OnboardingPage() {
                 </p>
               </div>
               <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-bold text-brand-700">
-                Central Demo Role Highlighted
+                3 Official Roles
               </span>
             </div>
 
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
-              {roles.map((r) => {
+              {availableRoles.map((r) => {
                 const active = selected === r.id;
-                const isDemo = r.id === "statistical-officer";
+                const isDemo = r.id === "11111111-1111-1111-1111-111111111101" || r.id === "statistical-officer";
 
                 return (
                   <button
@@ -101,7 +151,7 @@ export default function OnboardingPage() {
                   >
                     {isDemo && (
                       <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-900 mb-2">
-                        <Sparkles className="h-3 w-3" /> Central Demo Role
+                        <Sparkles className="h-3 w-3" /> Recommended Role
                       </span>
                     )}
 
@@ -116,19 +166,66 @@ export default function OnboardingPage() {
                       )}
                     </div>
 
-                    <p className="mt-2 text-xs leading-relaxed text-ink-600">
+                    <p className="mt-2 text-xs leading-relaxed text-ink-600 line-clamp-3">
                       {r.description}
                     </p>
 
-                    <div className="mt-4 pt-3 border-t border-ink-100 flex items-center justify-between text-xs">
-                      <span className="font-semibold text-brand-700">
-                        {r.requirements.length} Required Skills
-                      </span>
-                      <span className="text-[11px] text-ink-400">
-                        MoSPI Framework
-                      </span>
+                    <div className="mt-4 flex items-center justify-between border-t border-ink-100 pt-3 text-[11px] font-semibold text-ink-500">
+                      <span>{r.requirements?.length || 6} Competencies</span>
+                      <span className="text-brand-700 font-bold">Inspect Model →</span>
                     </div>
                   </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Baseline Self-Rating Sliders Module */}
+          <div className="card p-6 border-ink-200 bg-white shadow-card">
+            <div className="flex items-center justify-between border-b border-ink-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Sliders className="h-4 w-4 text-brand-600" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-ink-500">
+                  Baseline Self-Rating: Perceived Capability Capture
+                </h3>
+              </div>
+              <span className="text-xs text-ink-400">0% (Novice) → 100% (Master)</span>
+            </div>
+            <p className="mt-2 text-xs text-ink-600">
+              Rate your current perceived capability for each required competency before taking the diagnostic.
+              SkillCompass will contrast this against empirical assessment scores to identify cognitive blindspots.
+            </p>
+
+            <div className="mt-5 space-y-4">
+              {chosen.requirements.map((req) => {
+                const comp = competencyById(req.competencyId);
+                const name = comp?.name ?? req.competencyId;
+                const val = selfRatings[req.competencyId] ?? 50;
+
+                return (
+                  <div key={req.competencyId} className="rounded-xl border border-ink-100 bg-ink-50/50 p-3.5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-xs font-bold text-ink-900">{name}</span>
+                        <span className="ml-2 text-[10px] text-ink-400">Target Benchmark: {req.required}%</span>
+                      </div>
+                      <span className="font-mono text-xs font-bold text-brand-700">{val}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={val}
+                      onChange={(e) => handleRatingChange(req.competencyId, Number(e.target.value))}
+                      className="mt-2 w-full accent-brand-600"
+                    />
+                    <div className="flex justify-between text-[10px] text-ink-400 mt-1">
+                      <span>Novice (0-39%)</span>
+                      <span>Developing (40-69%)</span>
+                      <span>Proficient (70-89%)</span>
+                      <span>Master (90-100%)</span>
+                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -188,9 +285,10 @@ export default function OnboardingPage() {
 
             <button
               onClick={start}
-              className="btn-primary mt-6 w-full py-3 text-sm font-bold shadow-md shadow-brand-600/20"
+              disabled={submitting}
+              className="btn-primary mt-6 w-full py-3 text-sm font-bold shadow-md shadow-brand-600/20 disabled:opacity-50"
             >
-              Start Diagnostic Assessment <ArrowRight className="h-4 w-4" />
+              {submitting ? "Initializing Profile..." : "Save Profile & Start Assessment"} <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </aside>

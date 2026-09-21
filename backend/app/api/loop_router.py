@@ -216,7 +216,7 @@ def get_next_action(user_id: str = Query("demo-user-001")):
 
 @router.post("/demo/seed")
 def seed_demo(
-    profile: str = Query("baseline", regex="^(baseline|reassessed)$"),
+    profile: str = Query("baseline", pattern="^(baseline|reassessed)$"),
     user_id: str = Query("demo-user-001")
 ):
     """DEV/DEMO only: Populates real observable EvidenceLogs, assessments, and learning progress."""

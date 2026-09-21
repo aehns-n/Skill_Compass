@@ -56,19 +56,19 @@ export default function DashboardPage() {
   }
 
   const avgCurrent = Math.round(
-    scores.reduce((a, s) => a + s.current, 0) / scores.length
+    scores.reduce((a, s) => a + s.current, 0) / (scores.length || 1)
   );
   const totalGap = scores.reduce((a, s) => a + Math.max(0, s.required - s.current), 0);
   const met = scores.filter((s) => s.current >= s.required).length;
 
   const compareData = scores.map((s) => ({
-    name: competencyById(s.competencyId)?.name ?? s.competencyId,
+    name: s.name ?? competencyById(s.competencyId)?.name ?? s.competencyId,
     Current: s.current,
     Required: s.required,
   }));
 
   const biggestName = biggestGap
-    ? competencyById(biggestGap.competencyId)?.name
+    ? (biggestGap.name ?? competencyById(biggestGap.competencyId)?.name ?? biggestGap.competencyId)
     : null;
 
   return (
@@ -77,20 +77,20 @@ export default function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Target Role Model"
-          value={role?.title ?? "Statistical Officer"}
-          sub="MoSPI Cadre Standard"
+          value={role?.title ?? "Data Engineer"}
+          sub="Official Framework Standard"
           badge="Benchmark Active"
         />
         <StatCard
           label="Average Competency"
           value={`${avgCurrent}%`}
-          sub="Across 4 required competencies"
+          sub={`Across ${scores.length} required competencies`}
           accent={pythonAfter != null ? "text-emerald-700" : "text-brand-700"}
         />
         <StatCard
           label="Benchmarks Met"
           value={`${met} / ${scores.length}`}
-          sub={met === scores.length ? "All benchmarks satisfied" : "SQL satisfied; 3 in progress"}
+          sub={met === scores.length ? "All benchmarks satisfied" : `${met} satisfied; ${scores.length - met} in progress`}
           accent={met === scores.length ? "text-emerald-600" : "text-amber-600"}
         />
         <StatCard
@@ -98,7 +98,7 @@ export default function DashboardPage() {
           value={`${totalGap} pts`}
           sub={
             pythonAfter != null
-              ? "Python gap shrunk from 41 ➔ 3 pts"
+              ? "Primary gap remediated"
               : biggestName
               ? `Largest: ${biggestName} (${biggestGap?.gap} pts)`
               : "No gaps detected"
@@ -107,7 +107,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Primary Callout: Python Identified as the Largest Role-Relevant Gap */}
+      {/* Primary Callout: Largest Role-Relevant Gap */}
       {biggestGap && (
         <div className="mt-6 rounded-2xl border border-red-200 bg-gradient-to-r from-red-50 via-white to-red-50/40 p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -123,7 +123,7 @@ export default function DashboardPage() {
                   Largest Role-Relevant Gap: {biggestName} — {biggestGap.gap} Points
                 </h2>
                 <p className="mt-1 text-xs text-ink-600 max-w-2xl leading-relaxed">
-                  Current proficiency is <strong className="text-red-700 tabular-nums">{biggestGap.current}%</strong> against the role requirement of <strong className="text-ink-800 tabular-nums">{biggestGap.required}%</strong>. In the competency graph, Python is an unblockable prerequisite for Data Cleaning and Advanced Statistical Analysis.
+                  Current proficiency is <strong className="text-red-700 tabular-nums">{biggestGap.current}%</strong> against the role requirement of <strong className="text-ink-800 tabular-nums">{biggestGap.required}%</strong>. In the competency graph, {biggestName} is the prerequisite bottleneck currently gating advanced capabilities.
                 </p>
               </div>
             </div>

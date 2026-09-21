@@ -11,23 +11,80 @@ import {
   Info,
   GitBranch,
 } from "lucide-react";
-import { graphNodes, graphEdges, type GraphNode } from "@/data/competencyGraph";
+import { graphNodes as defaultNodes, graphEdges as defaultEdges, type GraphNode, type GraphEdge } from "@/data/competencyGraph";
 import { usePrototype } from "@/context/PrototypeContext";
+import { api } from "@/lib/api";
 
 export function CompetencyGraph() {
   const { pythonAfter } = usePrototype();
+  const [liveNodes, setLiveNodes] = useState<GraphNode[]>(defaultNodes);
+  const [liveEdges, setLiveEdges] = useState<GraphEdge[]>(defaultEdges);
   const [selectedNodeId, setSelectedNodeId] = useState<string>("python");
 
-  // Dynamic node score override if Python has been reassessed
-  const nodes = graphNodes.map((n) => {
-    if (n.id === "python" && pythonAfter != null) {
+  React.useEffect(() => {
+    let isMounted = true;
+    async function fetchGraph() {
+      try {
+        const res = await api.getCompetencyGraph("demo-user-001");
+        if (isMounted && res && res.nodes && res.nodes.length > 0) {
+          const mappedNodes: GraphNode[] = res.nodes.map((n, idx) => {
+            const cat: "foundation" | "intermediate" | "advanced" =
+              n.rank <= 2 ? "foundation" : n.rank <= 4 ? "intermediate" : "advanced";
+            const isWeak = n.current_score < n.target && n.rank <= 2;
+            const status =
+              n.status === "gated" || n.status === "blocked"
+                ? "gated"
+                : n.current_score >= n.target
+                ? "adequate"
+                : isWeak
+                ? "weak_blocking"
+                : "ready";
+
+            return {
+              id: n.id,
+              label: n.name,
+              category: cat,
+              score: Math.round(n.current_score),
+              requiredScore: Math.round(n.target),
+              status,
+              description: `${n.name} (${n.category}). Required benchmark: ${n.target}%.`,
+              prerequisites: n.blocked_by,
+            };
+          });
+
+          const mappedEdges: GraphEdge[] = res.edges.map((e) => ({
+            from: e.from_id,
+            to: e.to_id,
+            type: "direct_prerequisite",
+            description: `${e.from_name} is a required prerequisite for ${e.to_name}.`,
+          }));
+
+          setLiveNodes(mappedNodes);
+          setLiveEdges(mappedEdges);
+          if (mappedNodes[0]) {
+            setSelectedNodeId(mappedNodes[0].id);
+          }
+        }
+      } catch (err) {
+        console.warn("Using fallback competency graph:", err);
+      }
+    }
+    fetchGraph();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Dynamic node score override if reassessed
+  const nodes = liveNodes.map((n) => {
+    if ((n.id === "python" || n.label.includes("SQL") || n.label.includes("Python")) && pythonAfter != null) {
       return {
         ...n,
         score: pythonAfter,
         status: pythonAfter >= 70 ? ("adequate" as const) : n.status,
       };
     }
-    if (n.id === "data-cleaning" && pythonAfter != null && pythonAfter >= 70) {
+    if ((n.id === "data-cleaning" || n.label.includes("Orchestration") || n.label.includes("Big Data")) && pythonAfter != null && pythonAfter >= 70) {
       return {
         ...n,
         status: "ready" as const,
@@ -38,8 +95,8 @@ export function CompetencyGraph() {
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId) ?? nodes[0];
 
-  const incomingEdges = graphEdges.filter((e) => e.to === selectedNode.id);
-  const outgoingEdges = graphEdges.filter((e) => e.from === selectedNode.id);
+  const incomingEdges = liveEdges.filter((e) => e.to === selectedNode.id);
+  const outgoingEdges = liveEdges.filter((e) => e.from === selectedNode.id);
 
   const incomingNodeLabels = incomingEdges.map(
     (e) => nodes.find((n) => n.id === e.from)?.label ?? e.from

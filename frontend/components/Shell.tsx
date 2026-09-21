@@ -18,8 +18,12 @@ import {
 } from "lucide-react";
 import { usePrototype } from "@/context/PrototypeContext";
 import { DemoNavigator } from "@/components/DemoNavigator";
+import { LoopWorkflowStepper } from "@/components/LoopWorkflowStepper";
+import { NextActionBanner } from "@/components/NextActionBanner";
+import { User } from "lucide-react";
 
 const navItems = [
+  { href: "/onboarding", label: "Profile & Baseline", icon: User },
   { href: "/dashboard", label: "Competency Dashboard", icon: LayoutDashboard },
   { href: "/graph", label: "Competency Graph", icon: Network },
   { href: "/gaps", label: "Skill Gap Analysis", icon: Crosshair },
@@ -188,6 +192,8 @@ export function Shell({
         <div className="flex min-w-0 flex-1 flex-col">
           <TopNavbar title={title} breadcrumb={breadcrumb} />
           <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 lg:px-8">
+            <LoopWorkflowStepper />
+            <NextActionBanner />
             <div className="mb-2 flex items-center justify-between">
               <h1 className="text-2xl font-black tracking-tight text-ink-900">{title}</h1>
             </div>
