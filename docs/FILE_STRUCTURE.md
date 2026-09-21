@@ -131,7 +131,7 @@ Schema definitions, data migrations, and deterministic seed scripts.
 ```
 database/
 ├── schema.sql                    # Pure PostgreSQL DDL (Tables, Foreign Keys, Indexes, Constraints)
-├── seed.sql                      # Idempotent SQL script populating initial roles, competencies, questions
+├── seed.sql                      # Idempotent SQL script populating roles, competencies, thresholds, and resources
 └── README.md                     # Database setup instructions, migration steps, reset commands
 ```
 
