@@ -1,0 +1,17 @@
+# SkillCompass Backend — pinned to the verified working environment (Python 3.14)
+# Runtime deps
+fastapi==0.135.2
+uvicorn==0.42.0
+pydantic==2.13.5
+beautifulsoup4==4.15.0
+numpy==2.4.3
+
+# Ops dashboard (optional — only needed for backend/dashboard.py)
+streamlit==1.58.0
+pandas==3.0.1
+
+# Test deps
+pytest==9.1.1
+httpx==0.28.1
+
+# Install with:  pip install -r backend/requirements.txt
